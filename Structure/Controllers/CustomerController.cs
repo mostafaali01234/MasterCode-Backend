@@ -32,6 +32,8 @@ namespace DemoApi.Controllers
         {
             try
             {
+              
+
                 var customer = await _unitOfWork.Customer.GetFirstorDefault(c => c.Id == id, IncludeWord: "ApplicationUser");
                 if (customer == null)
                 {
@@ -51,9 +53,12 @@ namespace DemoApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetAll()
         {
+            var user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole(SD.AdminRole);
+
             try
             {
-                var customers = await _unitOfWork.Customer.GetAll(IncludeWord: "ApplicationUser");
+                var customers = await _unitOfWork.Customer.GetAll(x => (isAdmin || x.ApplicationUserId == user) , IncludeWord: "ApplicationUser");
                 var customersToReturn = _mapper.Map<IEnumerable<CustomerDisplayDto>>(customers);
                 return Ok(customersToReturn);
             }
@@ -104,7 +109,7 @@ namespace DemoApi.Controllers
                 var customer = _mapper.Map<Customer>(customerToUpdate);
                 _unitOfWork.Customer.Update(customer);
                 await _unitOfWork.Complete();
-                return NoContent();
+                return Ok(customerToUpdate);
             }
             catch (Exception ex)
             {

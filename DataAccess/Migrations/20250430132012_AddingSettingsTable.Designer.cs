@@ -4,6 +4,7 @@ using DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250430132012_AddingSettingsTable")]
+    partial class AddingSettingsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,7 +56,7 @@ namespace DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedTime = new DateTime(2025, 5, 1, 19, 25, 43, 829, DateTimeKind.Local).AddTicks(7965),
+                            CreatedTime = new DateTime(2025, 4, 30, 16, 20, 11, 118, DateTimeKind.Local).AddTicks(6278),
                             Description = "تطبيق سطح المكتب",
                             DisplayOrder = 1,
                             Name = "DesktopApp"
@@ -61,7 +64,7 @@ namespace DataAccess.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedTime = new DateTime(2025, 5, 1, 19, 25, 43, 829, DateTimeKind.Local).AddTicks(7969),
+                            CreatedTime = new DateTime(2025, 4, 30, 16, 20, 11, 118, DateTimeKind.Local).AddTicks(6282),
                             Description = "تطبيق ويب",
                             DisplayOrder = 2,
                             Name = "WebApp"
@@ -69,7 +72,7 @@ namespace DataAccess.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedTime = new DateTime(2025, 5, 1, 19, 25, 43, 829, DateTimeKind.Local).AddTicks(7972),
+                            CreatedTime = new DateTime(2025, 4, 30, 16, 20, 11, 118, DateTimeKind.Local).AddTicks(6285),
                             Description = "تطبيق موبايل",
                             DisplayOrder = 3,
                             Name = "MobileApp"
@@ -107,104 +110,6 @@ namespace DataAccess.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("Entities.Models.CustomerPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double?>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("MoneySafeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("OrderHeaderId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("MoneySafeId");
-
-                    b.HasIndex("OrderHeaderId");
-
-                    b.ToTable("CustomerPayments");
-                });
-
-            modelBuilder.Entity("Entities.Models.Expense", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double?>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EmpId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("ExpenseTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MoneySafeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("EmpId");
-
-                    b.HasIndex("ExpenseTypeId");
-
-                    b.HasIndex("MoneySafeId");
-
-                    b.ToTable("Expenses");
-                });
-
-            modelBuilder.Entity("Entities.Models.ExpenseType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ExpenseTypes");
-                });
-
             modelBuilder.Entity("Entities.Models.Job", b =>
                 {
                     b.Property<int>("Id")
@@ -233,124 +138,38 @@ namespace DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedTime = new DateTime(2025, 5, 1, 16, 25, 43, 829, DateTimeKind.Utc).AddTicks(8182),
+                            CreatedTime = new DateTime(2025, 4, 30, 13, 20, 11, 118, DateTimeKind.Utc).AddTicks(6513),
                             Description = "",
                             Name = "ادارة"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedTime = new DateTime(2025, 5, 1, 16, 25, 43, 829, DateTimeKind.Utc).AddTicks(8184),
+                            CreatedTime = new DateTime(2025, 4, 30, 13, 20, 11, 118, DateTimeKind.Utc).AddTicks(6515),
                             Description = "",
                             Name = "برمجة"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedTime = new DateTime(2025, 5, 1, 16, 25, 43, 829, DateTimeKind.Utc).AddTicks(8186),
+                            CreatedTime = new DateTime(2025, 4, 30, 13, 20, 11, 118, DateTimeKind.Utc).AddTicks(6517),
                             Description = "",
                             Name = "تركيبات"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedTime = new DateTime(2025, 5, 1, 16, 25, 43, 829, DateTimeKind.Utc).AddTicks(8188),
+                            CreatedTime = new DateTime(2025, 4, 30, 13, 20, 11, 118, DateTimeKind.Utc).AddTicks(6519),
                             Description = "",
                             Name = "تسويق"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedTime = new DateTime(2025, 5, 1, 16, 25, 43, 829, DateTimeKind.Utc).AddTicks(8190),
+                            CreatedTime = new DateTime(2025, 4, 30, 13, 20, 11, 118, DateTimeKind.Utc).AddTicks(6521),
                             Description = "",
                             Name = "مبيعات"
                         });
-                });
-
-            modelBuilder.Entity("Entities.Models.Loan", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double?>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EmpId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("MoneySafeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("EmpId");
-
-                    b.HasIndex("MoneySafeId");
-
-                    b.ToTable("Loan");
-                });
-
-            modelBuilder.Entity("Entities.Models.MoneySafe", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("OpeningBalance")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.ToTable("MoneySafes");
-                });
-
-            modelBuilder.Entity("Entities.Models.OrderActivation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ActivationCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DeviceCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("OrderHeaderId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderHeaderId");
-
-                    b.ToTable("OrderActivations");
                 });
 
             modelBuilder.Entity("Entities.Models.OrderDetail", b =>
@@ -770,13 +589,13 @@ namespace DataAccess.Migrations
                         {
                             Id = "B22698B8-42A2-4115-9631-1C2D1E2AC5F7",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "93d67422-ab23-49a9-8469-289edb5726ed",
+                            ConcurrencyStamp = "f346390f-6173-45fc-93b2-9edca4048a9d",
                             Email = "Admin@Admin.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ADMIN.COM",
                             NormalizedUserName = "MASTERADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPvkER8G34jzObWs404uMFhGsoIgLhKVjW6fFA9llxVrOC/a9cX2Qjyp/LkZtK+W2Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMssaE6Mh18Hk6VGSfSug1bGYD+LWKGvl7rBfTZSP7Vw1NzIvW83HrOufiBGZr/mNg==",
                             PhoneNumber = "01153284612",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "00000000-0000-0000-0000-000000000000",
@@ -794,93 +613,6 @@ namespace DataAccess.Migrations
                         .HasForeignKey("ApplicationUserId");
 
                     b.Navigation("ApplicationUser");
-                });
-
-            modelBuilder.Entity("Entities.Models.CustomerPayment", b =>
-                {
-                    b.HasOne("Entities.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Entities.Models.MoneySafe", "MoneySafe")
-                        .WithMany()
-                        .HasForeignKey("MoneySafeId");
-
-                    b.HasOne("Entities.Models.OrderHeader", "OrderHeader")
-                        .WithMany()
-                        .HasForeignKey("OrderHeaderId");
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("MoneySafe");
-
-                    b.Navigation("OrderHeader");
-                });
-
-            modelBuilder.Entity("Entities.Models.Expense", b =>
-                {
-                    b.HasOne("Entities.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Entities.Models.ApplicationUser", "Emp")
-                        .WithMany()
-                        .HasForeignKey("EmpId");
-
-                    b.HasOne("Entities.Models.ExpenseType", "ExpenseType")
-                        .WithMany()
-                        .HasForeignKey("ExpenseTypeId");
-
-                    b.HasOne("Entities.Models.MoneySafe", "MoneySafe")
-                        .WithMany()
-                        .HasForeignKey("MoneySafeId");
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("Emp");
-
-                    b.Navigation("ExpenseType");
-
-                    b.Navigation("MoneySafe");
-                });
-
-            modelBuilder.Entity("Entities.Models.Loan", b =>
-                {
-                    b.HasOne("Entities.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Entities.Models.ApplicationUser", "Emp")
-                        .WithMany()
-                        .HasForeignKey("EmpId");
-
-                    b.HasOne("Entities.Models.MoneySafe", "MoneySafe")
-                        .WithMany()
-                        .HasForeignKey("MoneySafeId");
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("Emp");
-
-                    b.Navigation("MoneySafe");
-                });
-
-            modelBuilder.Entity("Entities.Models.MoneySafe", b =>
-                {
-                    b.HasOne("Entities.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.Navigation("ApplicationUser");
-                });
-
-            modelBuilder.Entity("Entities.Models.OrderActivation", b =>
-                {
-                    b.HasOne("Entities.Models.OrderHeader", "OrderHeader")
-                        .WithMany()
-                        .HasForeignKey("OrderHeaderId");
-
-                    b.Navigation("OrderHeader");
                 });
 
             modelBuilder.Entity("Entities.Models.OrderDetail", b =>

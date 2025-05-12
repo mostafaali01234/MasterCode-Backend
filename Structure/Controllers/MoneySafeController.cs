@@ -12,11 +12,11 @@ namespace DemoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class MoneySafeController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public CategoryController(IUnitOfWork unitOfWork, IMapper mapper)
+        public MoneySafeController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -25,19 +25,17 @@ namespace DemoApi.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<IActionResult> GetCategory(int id)
+        public async Task<IActionResult> GetMoneySafe(int id)
         {
-            //Category category = _unitOfWork.Category.GetFirstorDefault(c => c.Id == id, IncludeWord: "Products");
-            //return Ok(category);
             try
             {
-                var category = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (category == null)
+                var moneySafe = await _unitOfWork.MoneySafe.GetFirstorDefault(c => c.Id == id);
+                if (moneySafe == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("MoneySafe not found");
                 }
-                var categoryToReturn = _mapper.Map<CategoryDisplayDto>(category);
-                return Ok(categoryToReturn);
+                var moneySafeToReturn = _mapper.Map<MoneySafeDisplayDto>(moneySafe);
+                return Ok(moneySafeToReturn);
             }
             catch (Exception ex)
             {
@@ -52,9 +50,9 @@ namespace DemoApi.Controllers
         {
             try
             {
-                var categories = await _unitOfWork.Category.GetAll();
-                var categoriesToReturn = _mapper.Map<IEnumerable<CategoryDisplayDto>>(categories);
-                return Ok(categoriesToReturn);
+                var moneysafes = await _unitOfWork.MoneySafe.GetAll();
+                var moneysafesToReturn = _mapper.Map<IEnumerable<MoneySafeDisplayDto>>(moneysafes);
+                return Ok(moneysafesToReturn);
             }
             catch (Exception ex)
             {
@@ -65,16 +63,16 @@ namespace DemoApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = SD.AdminRole)]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> DeleteMoneySafe(int id)
         {
             try
             {
-                var category = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (category == null)
+                var moneysafe = await _unitOfWork.MoneySafe.GetFirstorDefault(c => c.Id == id);
+                if (moneysafe == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("MoneySafe not found");
                 }
-                _unitOfWork.Category.Remove(category);
+                _unitOfWork.MoneySafe.Remove(moneysafe);
                 await _unitOfWork.Complete();
                 return NoContent();
             }
@@ -87,23 +85,23 @@ namespace DemoApi.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryUpdateDto categoryToUpdate)
+        public async Task<IActionResult> UpdateMoneySafe(int id, [FromBody] MoneySafeUpdateDto moneysafeToUpdate)
         {
             try
             {
-                if (id != categoryToUpdate.Id)
+                if (id != moneysafeToUpdate.Id)
                 {
-                    return BadRequest("Category ID mismatch");
+                    return BadRequest("MoneySafe ID mismatch");
                 }
-                var existingCategory = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (existingCategory == null)
+                var existingmoneysafe = await _unitOfWork.MoneySafe.GetFirstorDefault(c => c.Id == id);
+                if (existingmoneysafe == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("MoneySafe not found");
                 }
-                var category = _mapper.Map<Category>(categoryToUpdate);
-                _unitOfWork.Category.Update(category);
+                var moneysafe = _mapper.Map<MoneySafe>(moneysafeToUpdate);
+                _unitOfWork.MoneySafe.Update(moneysafe);
                 await _unitOfWork.Complete();
-                return Ok(categoryToUpdate);
+                return Ok(moneysafeToUpdate);
             }
             catch (Exception ex)
             {
@@ -115,14 +113,14 @@ namespace DemoApi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddCategory(CategoryCreateDto categoryToAdd)
+        public async Task<IActionResult> AddMoneySafe(MoneySafeCreateDto moneysafeToAdd)
         {
             try
             {
-                var category = _mapper.Map<Category>(categoryToAdd);
-                _unitOfWork.Category.Add(category);
+                var moneysafe = _mapper.Map<MoneySafe>(moneysafeToAdd);
+                _unitOfWork.MoneySafe.Add(moneysafe);
                 await _unitOfWork.Complete();
-                return CreatedAtAction(nameof(AddCategory), category);
+                return CreatedAtAction(nameof(AddMoneySafe), moneysafe);
             }
             catch (Exception ex)
             {

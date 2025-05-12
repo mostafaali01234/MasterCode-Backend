@@ -46,11 +46,11 @@ namespace DemoApi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(int? catId)
         {
             try
             {
-                var products = await _unitOfWork.Product.GetAll(IncludeWord: "Category");
+                var products = await _unitOfWork.Product.GetAll(z => catId == null || catId == 0 || z.CategoryId == catId ,IncludeWord: "Category");
                 var productsToReturn = _mapper.Map<IEnumerable<ProductDisplayDto>>(products);
                 return Ok(productsToReturn);
             }
@@ -101,7 +101,7 @@ namespace DemoApi.Controllers
                 var product = _mapper.Map<Product>(productToUpdate);
                 _unitOfWork.Product.Update(product);
                 await _unitOfWork.Complete();
-                return NoContent();
+                return Ok(productToUpdate);
             }
             catch (Exception ex)
             {

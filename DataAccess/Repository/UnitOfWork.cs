@@ -14,7 +14,12 @@ namespace DataAccess.Repository
         public ICustomerRepository Customer { get; private set; }
         public IShoppingCartRepository ShoppingCart { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
-
+        public ISettingRepository Setting { get; private set; }
+        public ICustomerPaymentRepository CustomerPayment { get; private set; }
+        public IExpenseRepository Expense { get; private set; }
+        public IExpenseTypeRepository ExpenseType { get; private set; }
+        public ILoanRepository Loan { get; private set; }
+        public IMoneySafeRepository MoneySafe { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -25,6 +30,12 @@ namespace DataAccess.Repository
             Product = new ProductRepository(context);
             Customer = new CustomerRepository(context);
             ApplicationUser = new ApplicationUserRepository(context);
+            Setting = new SettingRepository(context);
+            CustomerPayment = new CustomerPaymentRepository(context);
+            Expense = new ExpenseRepository(context);
+            ExpenseType = new ExpenseTypeRepository(context);
+            Loan = new LoanRepository(context);
+            MoneySafe = new MoneySafeRepository(context);
         }
 
         public async Task<int> Complete()

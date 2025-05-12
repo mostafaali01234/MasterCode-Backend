@@ -4,7 +4,7 @@ using Entities.IRepository;
 
 namespace DataAccess.Repository
 {
-    public class ShoppingCartRepository : GenericRepository<Category>, IShoppingCartRepository
+    public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShoppingCartRepository
     {
         private readonly ApplicationDbContext _context;
         public ShoppingCartRepository(ApplicationDbContext context) : base(context)

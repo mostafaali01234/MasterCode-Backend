@@ -11,14 +11,14 @@ namespace Entities.DTO
 {
     public class OrderHeaderCreateDto
     {
-        public string OrderStatus { get; set; } = SD.StatusNew;
-        public string PaymentStatus { get; set; } = SD.PaymentStatusNew;
+        //public string OrderStatus { get; set; } = SD.StatusNew;
+        //public string PaymentStatus { get; set; } = SD.PaymentStatusNew;
         public string OrderNotes { get; set; } = string.Empty;
-        public double OrderTotal { get; set; } = 0;
+        //public double OrderTotal { get; set; } = 0;
         [Required]
         public int CustomerId { get; set; }
         public string ApplicationUserId { get; set; }
-        public int? TechId { get; set; }
+        //public string? TechId { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public DateTime InstallDate { get; set; } = DateTime.Now;
 
@@ -35,7 +35,7 @@ namespace Entities.DTO
         public string CustomerName { get; set; }
         public string ApplicationUserId { get; set; }
         public string ApplicationUserName { get; set; }
-        public int? TechId { get; set; }
+        public string? TechId { get; set; }
         public string TechName { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public DateTime InstallDate { get; set; } = DateTime.Now;
@@ -50,7 +50,7 @@ namespace Entities.DTO
         [Required]
         public int CustomerId { get; set; }
         public string ApplicationUserId { get; set; }
-        public int? TechId { get; set; }
+        public string? TechId { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime InstallDate { get; set; }
     }

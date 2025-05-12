@@ -1,4 +1,6 @@
-﻿namespace Utilities
+﻿using System.Security.Claims;
+
+namespace Utilities
 {
     public static class SD
     {
@@ -6,10 +8,12 @@
         public const string EmployeeRole = "Employee";
         public const string CustomerRole = "Customer";
 
+
         public const string StatusNew = "اوردر جديد";
         public const string StatusDone = "اوردر تام";
         public const string StatusCanceled = "اوردر ملغي";
         public const string StatusDeleted = "اوردر محذوف";
+
 
         public const string PaymentStatusNew = "لم يتم الدفع";
         public const string PaymentStatusDonw = "تم الدفع";

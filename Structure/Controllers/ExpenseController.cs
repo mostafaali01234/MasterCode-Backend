@@ -12,11 +12,11 @@ namespace DemoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class ExpenseController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public CategoryController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ExpenseController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -25,19 +25,17 @@ namespace DemoApi.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<IActionResult> GetCategory(int id)
+        public async Task<IActionResult> GetExpense(int id)
         {
-            //Category category = _unitOfWork.Category.GetFirstorDefault(c => c.Id == id, IncludeWord: "Products");
-            //return Ok(category);
             try
             {
-                var category = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (category == null)
+                var expense = await _unitOfWork.Expense.GetFirstorDefault(c => c.Id == id);
+                if (expense == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("Expense not found");
                 }
-                var categoryToReturn = _mapper.Map<CategoryDisplayDto>(category);
-                return Ok(categoryToReturn);
+                var expenseToReturn = _mapper.Map<ExpenseDisplayDto>(expense);
+                return Ok(expenseToReturn);
             }
             catch (Exception ex)
             {
@@ -52,9 +50,9 @@ namespace DemoApi.Controllers
         {
             try
             {
-                var categories = await _unitOfWork.Category.GetAll();
-                var categoriesToReturn = _mapper.Map<IEnumerable<CategoryDisplayDto>>(categories);
-                return Ok(categoriesToReturn);
+                var expenses = await _unitOfWork.Expense.GetAll();
+                var expensesToReturn = _mapper.Map<IEnumerable<ExpenseDisplayDto>>(expenses);
+                return Ok(expensesToReturn);
             }
             catch (Exception ex)
             {
@@ -65,16 +63,16 @@ namespace DemoApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = SD.AdminRole)]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> DeleteExpense(int id)
         {
             try
             {
-                var category = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (category == null)
+                var expense = await _unitOfWork.Expense.GetFirstorDefault(c => c.Id == id);
+                if (expense == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("Expense not found");
                 }
-                _unitOfWork.Category.Remove(category);
+                _unitOfWork.Expense.Remove(expense);
                 await _unitOfWork.Complete();
                 return NoContent();
             }
@@ -87,23 +85,23 @@ namespace DemoApi.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryUpdateDto categoryToUpdate)
+        public async Task<IActionResult> UpdateExpense(int id, [FromBody] ExpenseUpdateDto expenseToUpdate)
         {
             try
             {
-                if (id != categoryToUpdate.Id)
+                if (id != expenseToUpdate.Id)
                 {
-                    return BadRequest("Category ID mismatch");
+                    return BadRequest("Expense ID mismatch");
                 }
-                var existingCategory = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (existingCategory == null)
+                var existingExpense = await _unitOfWork.Expense.GetFirstorDefault(c => c.Id == id);
+                if (existingExpense == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("Expense not found");
                 }
-                var category = _mapper.Map<Category>(categoryToUpdate);
-                _unitOfWork.Category.Update(category);
+                var expense = _mapper.Map<Expense>(expenseToUpdate);
+                _unitOfWork.Expense.Update(expense);
                 await _unitOfWork.Complete();
-                return Ok(categoryToUpdate);
+                return Ok(expenseToUpdate);
             }
             catch (Exception ex)
             {
@@ -115,14 +113,14 @@ namespace DemoApi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddCategory(CategoryCreateDto categoryToAdd)
+        public async Task<IActionResult> AddExpense(ExpenseCreateDto expenseToAdd)
         {
             try
             {
-                var category = _mapper.Map<Category>(categoryToAdd);
-                _unitOfWork.Category.Add(category);
+                var expense = _mapper.Map<Expense>(expenseToAdd);
+                _unitOfWork.Expense.Add(expense);
                 await _unitOfWork.Complete();
-                return CreatedAtAction(nameof(AddCategory), category);
+                return CreatedAtAction(nameof(AddExpense), expense);
             }
             catch (Exception ex)
             {

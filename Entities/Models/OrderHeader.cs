@@ -21,7 +21,7 @@ public class OrderHeader
     public string? TechId { get; set; }
     [ForeignKey("TechId")]
     //[ValidateNever]
-    public ApplicationUser? Tech { get; set; }
+    public ApplicationUser Tech { get; set; }
     [DisplayName("الاجمالي")]
     public double OrderTotal { get; set; }
     [DisplayName("حالة الاوردر")]

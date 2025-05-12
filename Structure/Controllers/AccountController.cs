@@ -64,7 +64,8 @@ namespace DemoApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApplicationUser user = await userManager.FindByNameAsync(UserDto.UserName);
+                ApplicationUser user = await userManager.FindByEmailAsync(UserDto.UserName);
+                //ApplicationUser user = await userManager.FindByNameAsync(UserDto.UserName);
                 if (user != null)
                 {
                     bool found = await userManager.CheckPasswordAsync(user, UserDto.Password);

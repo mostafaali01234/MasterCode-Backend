@@ -4,7 +4,7 @@ using Entities.IRepository;
 
 namespace DataAccess.Repository
 {
-    public class OrderDetailRepository : GenericRepository<Category>, IOrderDetailRepository
+    public class OrderDetailRepository : GenericRepository<OrderDetail>, IOrderDetailRepository
     {
         private readonly ApplicationDbContext _context;
         public OrderDetailRepository(ApplicationDbContext context) : base(context)

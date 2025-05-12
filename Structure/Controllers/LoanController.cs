@@ -12,11 +12,11 @@ namespace DemoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class LoanController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public CategoryController(IUnitOfWork unitOfWork, IMapper mapper)
+        public LoanController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -25,19 +25,17 @@ namespace DemoApi.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<IActionResult> GetCategory(int id)
+        public async Task<IActionResult> GetLoan(int id)
         {
-            //Category category = _unitOfWork.Category.GetFirstorDefault(c => c.Id == id, IncludeWord: "Products");
-            //return Ok(category);
             try
             {
-                var category = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (category == null)
+                var loan = await _unitOfWork.Loan.GetFirstorDefault(c => c.Id == id);
+                if (loan == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("Loan not found");
                 }
-                var categoryToReturn = _mapper.Map<CategoryDisplayDto>(category);
-                return Ok(categoryToReturn);
+                var loanToReturn = _mapper.Map<LoanDisplayDto>(loan);
+                return Ok(loanToReturn);
             }
             catch (Exception ex)
             {
@@ -52,9 +50,9 @@ namespace DemoApi.Controllers
         {
             try
             {
-                var categories = await _unitOfWork.Category.GetAll();
-                var categoriesToReturn = _mapper.Map<IEnumerable<CategoryDisplayDto>>(categories);
-                return Ok(categoriesToReturn);
+                var loans = await _unitOfWork.Loan.GetAll();
+                var loansToReturn = _mapper.Map<IEnumerable<LoanDisplayDto>>(loans);
+                return Ok(loansToReturn);
             }
             catch (Exception ex)
             {
@@ -65,16 +63,16 @@ namespace DemoApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = SD.AdminRole)]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> DeleteLoan(int id)
         {
             try
             {
-                var category = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (category == null)
+                var loan = await _unitOfWork.Loan.GetFirstorDefault(c => c.Id == id);
+                if (loan == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("Loan not found");
                 }
-                _unitOfWork.Category.Remove(category);
+                _unitOfWork.Loan.Remove(loan);
                 await _unitOfWork.Complete();
                 return NoContent();
             }
@@ -87,23 +85,23 @@ namespace DemoApi.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryUpdateDto categoryToUpdate)
+        public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoanUpdateDto loanToUpdate)
         {
             try
             {
-                if (id != categoryToUpdate.Id)
+                if (id != loanToUpdate.Id)
                 {
-                    return BadRequest("Category ID mismatch");
+                    return BadRequest("Loan ID mismatch");
                 }
-                var existingCategory = await _unitOfWork.Category.GetFirstorDefault(c => c.Id == id);
-                if (existingCategory == null)
+                var existingLoan = await _unitOfWork.Loan.GetFirstorDefault(c => c.Id == id);
+                if (existingLoan == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound("Loan not found");
                 }
-                var category = _mapper.Map<Category>(categoryToUpdate);
-                _unitOfWork.Category.Update(category);
+                var loan = _mapper.Map<Loan>(loanToUpdate);
+                _unitOfWork.Loan.Update(loan);
                 await _unitOfWork.Complete();
-                return Ok(categoryToUpdate);
+                return Ok(loanToUpdate);
             }
             catch (Exception ex)
             {
@@ -115,14 +113,14 @@ namespace DemoApi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddCategory(CategoryCreateDto categoryToAdd)
+        public async Task<IActionResult> AddLoan(LoanCreateDto loanToAdd)
         {
             try
             {
-                var category = _mapper.Map<Category>(categoryToAdd);
-                _unitOfWork.Category.Add(category);
+                var loan = _mapper.Map<Loan>(loanToAdd);
+                _unitOfWork.Loan.Add(loan);
                 await _unitOfWork.Complete();
-                return CreatedAtAction(nameof(AddCategory), category);
+                return CreatedAtAction(nameof(AddLoan), loan);
             }
             catch (Exception ex)
             {

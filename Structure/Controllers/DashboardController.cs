@@ -39,8 +39,10 @@ namespace DemoApi.Controllers
                             && z.OrderStatus != SD.StatusCanceled
                             && z.OrderStatus != SD.StatusDeleted);
 
-            var countByCurrentMonth = totalOrders.Count(z => z.InstallDate >= currentMonthStartDate && z.InstallDate <= DateTime.Now);
-            var countByPreviousMonth = totalOrders.Count(z => z.InstallDate >= previousMonthStartDate && z.InstallDate <= currentMonthStartDate);
+            var ordersToReturn = _mapper.Map<IEnumerable<OrderHeaderDisplayDto>>(totalOrders);
+
+            var countByCurrentMonth = ordersToReturn.Count(z => z.InstallDate >= currentMonthStartDate && z.InstallDate <= DateTime.Now);
+            var countByPreviousMonth = ordersToReturn.Count(z => z.InstallDate >= previousMonthStartDate && z.InstallDate <= currentMonthStartDate);
 
 
             return Ok(GetRaidalChartDataModel(Convert.ToInt32(countByCurrentMonth), countByCurrentMonth, countByPreviousMonth));
@@ -55,12 +57,13 @@ namespace DemoApi.Controllers
                 .GetAll(z => z.OrderStatus != SD.StatusNew
                             && z.OrderStatus != SD.StatusCanceled
                             && z.OrderStatus != SD.StatusDeleted);
+            var ordersToReturn = _mapper.Map<IEnumerable<OrderHeaderDisplayDto>>(totalOrders);
 
-            var totalRevenue = Convert.ToInt32(totalOrders.Sum(z => z.OrderTotal));
+            var totalRevenue = Convert.ToInt32(ordersToReturn.Sum(z => z.OrderTotal));
 
-            var countByCurrentMonth = totalOrders
+            var countByCurrentMonth = ordersToReturn
                 .Where(z => z.InstallDate >= currentMonthStartDate && z.InstallDate <= DateTime.Now).Sum(z => z.OrderTotal);
-            var countByPreviousMonth = totalOrders
+            var countByPreviousMonth = ordersToReturn
                 .Where(z => z.InstallDate >= previousMonthStartDate && z.InstallDate <= currentMonthStartDate).Sum(z => z.OrderTotal);
 
 
@@ -96,27 +99,29 @@ namespace DemoApi.Controllers
         public async Task<IActionResult> GetSalesLineChartData()
         {
             var data = _unitOfWork.OrderHeader
-                .GetAll(z => z.OrderDate >= DateTime.Now.AddDays(-30) && z.OrderDate <= DateTime.Now, includeProperties: "ApplicationUser")
-                .GroupBy(z => new { date = z.OrderDate.Date, name = z.ApplicationUser.Name })
+                .GetAll(z => z.OrderDate >= DateTime.Now.AddDays(-30) && z.OrderDate <= DateTime.Now, IncludeWord: "ApplicationUser");
+
+            var dataToReturn = _mapper.Map<IEnumerable<OrderHeaderDisplayDto>>(data)
+                .GroupBy(z => new { date = z.OrderDate.Date, name = z.ApplicationUserName })
                 .Select(z => new {
                     DateTime = z.Key.date,
                     Seller = z.Key.name,
                     Count = z.Count()
                 });
 
-            var categories = data.OrderBy(z => z.DateTime).Select(z => z.DateTime.ToString("MM/dd/yyyy")).ToArray();
+            var categories = dataToReturn.OrderBy(z => z.DateTime).Select(z => z.DateTime.ToString("MM/dd/yyyy")).ToArray();
 
             List<ChartData> cdList = new() { };
 
             foreach (var emp in await _userManager.Users.Include(z => z.Job).ToListAsync())
             {
-                if (data.Any(z => z.Seller == emp.Name))
+                if (dataToReturn.Any(z => z.Seller == emp.Name))
                 {
                     var list = new int[categories.Length];
                     var cc = 0;
                     foreach (var d in categories)
                     {
-                        var item = data.FirstOrDefault(z => z.DateTime.ToString("MM/dd/yyyy") == d && z.Seller == emp.Name);
+                        var item = dataToReturn.FirstOrDefault(z => z.DateTime.ToString("MM/dd/yyyy") == d && z.Seller == emp.Name);
                         list[cc] = (item != null
                             ? item.Count
                             : 0);
@@ -137,6 +142,41 @@ namespace DemoApi.Controllers
             };
 
             return Ok(lc);
+        }
+
+        
+        [HttpGet("GetPercentSettings")]
+        public async Task<IActionResult> GetPercentSettings()
+        {
+            var list = await _unitOfWork.Setting.GetAll(z => z.Name.Contains("Percent"));
+
+            return Ok(list);
+        }
+
+
+        [HttpPost("AddUpdateSettings")]
+        [Authorize]
+        public async Task<IActionResult> AddUpdateSetting(Settings settings)
+        {
+            try
+            {
+                var old = await _unitOfWork.Setting.GetFirstorDefault(z => z.Name == settings.Name);
+                if(old == null)
+                {
+                    settings.Id = 0;
+                    _unitOfWork.Setting.Add(settings);
+                }
+                else
+                {
+                    _unitOfWork.Setting.Update(settings);
+                }
+                await _unitOfWork.Complete();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 }

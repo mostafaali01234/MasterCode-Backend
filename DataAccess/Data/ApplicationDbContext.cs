@@ -19,6 +19,13 @@ namespace DataAccess.Data
         public DbSet<OrderHeader> OrderHeaders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<ShoppingCart> ShoppingCart { get; set; }
+        public DbSet<Settings> Settings { get; set; }
+        public DbSet<MoneySafe> MoneySafes { get; set; }
+        public DbSet<CustomerPayment> CustomerPayments { get; set; }
+        public DbSet<OrderActivation> OrderActivations { get; set; }
+        public DbSet<ExpenseType> ExpenseTypes { get; set; }
+        public DbSet<Expense> Expenses { get; set; }
+        public DbSet<Loan> Loan { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

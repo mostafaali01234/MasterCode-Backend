@@ -13,8 +13,8 @@ namespace Entities.DTO
 {
     public class OrderDetailCreateDto
     {
-        public int Id { get; set; }
-        public int OrderHeaderId { get; set; }
+        //public int Id { get; set; }
+        //public int OrderHeaderId { get; set; }
         [Required]
         public int ProductId { get; set; }
         public int Count { get; set; } = 1;
