@@ -26,6 +26,15 @@ namespace Entities.DTO
         public string CustomerAddress { get; set; } = string.Empty;
         public string AddedUserName { get; set; } = string.Empty;
     }
+    public class CustomerMovesDisplayDto
+    {
+        public int opId { get; set; }
+        public DateTime? opDate { get; set; }
+        public string opType { get; set; }
+        public string? opNotes { get; set; }
+        public double? opTotal { get; set; }
+        public double balance { get; set; }
+    }
     public class CustomerUpdateDto
     {
         public int Id { get; set; }

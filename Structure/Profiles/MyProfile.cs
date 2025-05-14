@@ -55,9 +55,11 @@ namespace Structure.Profiles
             CreateMap<Loan, LoanDisplayDto>()
                 .ForMember(pts => pts.MoneySafe, opt => opt.MapFrom(ps => ps.MoneySafe.Name))
                 .ForMember(pts => pts.ApplicationUser, opt => opt.MapFrom(ps => ps.ApplicationUser.Name))
+                .ForMember(pts => pts.Emp, opt => opt.MapFrom(ps => ps.Emp.Name))
                 .ReverseMap();
             CreateMap<Expense, ExpenseDisplayDto>()
                 .ForMember(pts => pts.ExpenseType, opt => opt.MapFrom(ps => ps.ExpenseType.Name))
+                .ForMember(pts => pts.Emp, opt => opt.MapFrom(ps => ps.Emp.Name))
                 .ForMember(pts => pts.ApplicationUser, opt => opt.MapFrom(ps => ps.ApplicationUser.Name))
                 .ForMember(pts => pts.MoneySafe, opt => opt.MapFrom(ps => ps.MoneySafe.Name))
                 .ReverseMap();

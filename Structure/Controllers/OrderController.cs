@@ -78,14 +78,41 @@ namespace DemoApi.Controllers
                 return BadRequest("Order Not Found!!");
 
 
-            var orderToUpdate = _mapper.Map<OrderHeader>(old);
-            _unitOfWork.OrderHeader.Update(orderToUpdate);
+            //var orderToUpdate = _mapper.Map<OrderHeader>(old);
+            _unitOfWork.OrderHeader.CancelOrder(old.Result);
             await _unitOfWork.Complete();
 
 
-            return Ok(orderToUpdate);
+            return Ok(old.Result);
         }
 
+        [HttpPost("CompleteOrder")]
+        //public async Task<IActionResult> CompleteOrder(int id, double Paid, int MoneySafeId, DateTime CompleteDate)
+        public async Task<IActionResult> CompleteOrder(OrderCompleteDto completeDets)
+        {
+            var old = _unitOfWork.OrderHeader.GetFirstorDefault(z => z.Id == completeDets.orderId);
+            if (old.Result == null)
+                return BadRequest("Order Not Found!!");
+
+            old.Result.InstallDate = completeDets.CompleteDate;
+
+            var orderToUpdate = _mapper.Map<OrderHeader>(old.Result);
+            _unitOfWork.OrderHeader.CompleteOrder(orderToUpdate);
+
+            if (orderToUpdate.OrderTotal == completeDets.Paid)
+                orderToUpdate.PaymentStatus = SD.PaymentStatusDonw;
+            _unitOfWork.CustomerPayment.Add(new CustomerPayment
+            {
+                Amount = completeDets.Paid,
+                OrderHeaderId = orderToUpdate.Id,
+                Date = completeDets.CompleteDate,
+                MoneySafeId = completeDets.MoneySafeId,
+                ApplicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            });
+            await _unitOfWork.Complete();
+
+            return Ok(orderToUpdate);
+        }
 
         [HttpPost]
         //[Authorize]

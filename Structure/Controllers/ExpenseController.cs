@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Utilities;
+using System.Security.Claims;
 
 namespace DemoApi.Controllers
 {
@@ -29,7 +30,7 @@ namespace DemoApi.Controllers
         {
             try
             {
-                var expense = await _unitOfWork.Expense.GetFirstorDefault(c => c.Id == id);
+                var expense = await _unitOfWork.Expense.GetFirstorDefault(c => c.Id == id, IncludeWord: "ExpenseType,Emp,ApplicationUser,MoneySafe");
                 if (expense == null)
                 {
                     return NotFound("Expense not found");
@@ -50,7 +51,7 @@ namespace DemoApi.Controllers
         {
             try
             {
-                var expenses = await _unitOfWork.Expense.GetAll();
+                var expenses = await _unitOfWork.Expense.GetAll(IncludeWord: "ExpenseType,Emp,ApplicationUser,MoneySafe");
                 var expensesToReturn = _mapper.Map<IEnumerable<ExpenseDisplayDto>>(expenses);
                 return Ok(expensesToReturn);
             }
@@ -118,6 +119,7 @@ namespace DemoApi.Controllers
             try
             {
                 var expense = _mapper.Map<Expense>(expenseToAdd);
+                expense.ApplicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 _unitOfWork.Expense.Add(expense);
                 await _unitOfWork.Complete();
                 return CreatedAtAction(nameof(AddExpense), expense);

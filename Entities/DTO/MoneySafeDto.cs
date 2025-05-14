@@ -22,6 +22,15 @@ namespace Entities.DTO
         public double OpeningBalance { get; set; } = 0;
         public string ApplicationUser { get; set; } = string.Empty;
     }
+    public class MoneySafeMovesDisplayDto
+    {
+        public int opId { get; set; }
+        public DateTime? opDate { get; set; }
+        public string opType { get; set; }
+        public string? opNotes { get; set; }
+        public double? opTotal { get; set; }
+        public double balance { get; set; } 
+    }
     public class MoneySafeUpdateDto
     {
         public int Id { get; set; }

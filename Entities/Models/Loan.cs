@@ -10,6 +10,8 @@ public class Loan
     public double? Amount { get; set; }
     public DateTime? Date { get; set; }
     public string Notes { get; set; }
+    public string EmpId { get; set; }
+    [ForeignKey("EmpId")]
     public ApplicationUser Emp { get; set; }
     public int? MoneySafeId { get; set; }
     [ForeignKey("MoneySafeId")]

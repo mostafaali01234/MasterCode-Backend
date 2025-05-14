@@ -21,6 +21,7 @@ namespace DataAccess.Repository
                 loanInDb.Date = loan.Date;
                 loanInDb.Notes = loan.Notes;
                 loanInDb.MoneySafeId = loan.MoneySafeId;
+                loanInDb.EmpId = loan.EmpId;
             }
         }
     }

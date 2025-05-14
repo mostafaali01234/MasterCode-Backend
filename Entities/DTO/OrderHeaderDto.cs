@@ -23,6 +23,15 @@ namespace Entities.DTO
         public DateTime InstallDate { get; set; } = DateTime.Now;
 
     }
+
+    public class OrderCompleteDto
+    {
+        public int orderId { get; set; }
+        public double Paid { get; set; }
+        public int MoneySafeId { get; set; }
+        public DateTime CompleteDate { get; set; }
+
+    }
     public class OrderHeaderDisplayDto
     {
         public int Id { get; set; }

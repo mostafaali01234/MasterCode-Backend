@@ -1,6 +1,7 @@
 ﻿using DataAccess.Data;
 using Entities.Models;
 using Entities.IRepository;
+using Utilities;
 
 namespace DataAccess.Repository
 {
@@ -25,6 +26,24 @@ namespace DataAccess.Repository
                 orderHeaderInDb.TechId = orderHeader.TechId;
                 orderHeaderInDb.InstallDate = orderHeader.InstallDate;
                 orderHeaderInDb.PaymentStatus = orderHeader.PaymentStatus;
+            }
+        }
+
+        public void CancelOrder(OrderHeader orderHeader)
+        {
+            var orderHeaderInDb = _context.OrderHeaders.FirstOrDefault(x => x.Id == orderHeader.Id);
+            if (orderHeaderInDb != null)
+            {
+                orderHeaderInDb.OrderStatus = SD.StatusCanceled;
+            }
+        }
+        public void CompleteOrder(OrderHeader orderHeader)
+        {
+            var orderHeaderInDb = _context.OrderHeaders.FirstOrDefault(x => x.Id == orderHeader.Id);
+            if (orderHeaderInDb != null)
+            {
+                orderHeaderInDb.OrderStatus = SD.StatusDone;
+                orderHeaderInDb.InstallDate = orderHeader.InstallDate;
             }
         }
     }

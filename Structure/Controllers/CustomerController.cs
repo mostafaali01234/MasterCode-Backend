@@ -25,7 +25,6 @@ namespace DemoApi.Controllers
             _mapper = mapper;
         }
 
-
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetCustomer(int id)
@@ -48,7 +47,6 @@ namespace DemoApi.Controllers
             }
         }
 
-
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetAll()
@@ -67,7 +65,6 @@ namespace DemoApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
 
         [HttpDelete("{id}")]
         [Authorize(Roles = SD.AdminRole)]
@@ -89,7 +86,6 @@ namespace DemoApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
 
         [HttpPut("{id}")]
         [Authorize]
@@ -118,7 +114,6 @@ namespace DemoApi.Controllers
         }
 
 
-
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> AddCustomer(CustomerCreateDto customerToAdd)
@@ -130,6 +125,29 @@ namespace DemoApi.Controllers
                 _unitOfWork.Customer.Add(customer);
                 await _unitOfWork.Complete();
                 return CreatedAtAction(nameof(AddCustomer), customer);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("GetCustomerMoves/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetCustomerMoves(int id, DateTime fromDate, DateTime toDate)
+        {
+            try
+            {
+                var customer = await _unitOfWork.Customer.GetFirstorDefault(c => c.Id == id);
+                if (customer == null)
+                {
+                    return NotFound("Customer not found");
+                }
+                var MovesList = _unitOfWork.Customer.GetCustomerMoves(id, fromDate, toDate);
+
+                var customerToReturn = _mapper.Map<CustomerDisplayDto>(customer);
+
+                return Ok(new { Customer = customerToReturn, MovesList = MovesList });
             }
             catch (Exception ex)
             {

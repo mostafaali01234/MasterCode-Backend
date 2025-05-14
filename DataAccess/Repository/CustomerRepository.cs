@@ -1,6 +1,9 @@
 ﻿using DataAccess.Data;
 using Entities.Models;
 using Entities.IRepository;
+using Entities.DTO;
+using System.Collections.Generic;
+using Utilities;
 
 namespace DataAccess.Repository
 {
@@ -10,6 +13,48 @@ namespace DataAccess.Repository
         public CustomerRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
+        }
+
+        public List<CustomerMovesDisplayDto> GetCustomerMoves(int id, DateTime? fromDate, DateTime? endDate)
+        {
+            var moves = new List<CustomerMovesDisplayDto>();
+
+            var customerOrders = (from c in _context.OrderHeaders
+                                where c.CustomerId == id && c.OrderStatus == SD.StatusDone
+                                select new CustomerMovesDisplayDto
+                                {
+                                    opId = c.Id,
+                                    opDate = c.InstallDate,
+                                    opType = "اوردر",
+                                    opNotes = "اوردر رقم: " + c.Id.ToString(),
+                                    opTotal = c.OrderTotal,
+                                    balance = 0
+                                }).ToList();
+
+            var customerPays = (from c in _context.CustomerPayments
+                                where c.OrderHeader.CustomerId == id
+                                select new CustomerMovesDisplayDto
+                                {
+                                    opId = c.Id,
+                                    opDate = c.Date,
+                                    opType = "دفعات عملاء",
+                                    opNotes = "دفعة اوردر رقم: " + c.OrderHeader.Id.ToString(),
+                                    opTotal = c.Amount,
+                                    balance = 0
+                                }).ToList();
+
+
+            moves.AddRange(customerPays);
+            moves.AddRange(customerOrders);
+            moves = moves.OrderBy(z => z.opDate).ToList();
+
+            double sum = 0;
+            foreach (var m in moves)
+            {
+                sum += (m.opType == "اوردر" ? m.opTotal ?? 0 : (m.opTotal ?? 0) * -1);
+                m.balance = sum;
+            }
+            return moves;
         }
 
         public void Update(Customer customer)

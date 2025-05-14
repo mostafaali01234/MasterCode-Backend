@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Utilities;
+using System.Security.Claims;
 
 namespace DemoApi.Controllers
 {
@@ -29,7 +30,7 @@ namespace DemoApi.Controllers
         {
             try
             {
-                var loan = await _unitOfWork.Loan.GetFirstorDefault(c => c.Id == id);
+                var loan = await _unitOfWork.Loan.GetFirstorDefault(c => c.Id == id, IncludeWord: "ApplicationUser,MoneySafe,Emp");
                 if (loan == null)
                 {
                     return NotFound("Loan not found");
@@ -50,7 +51,7 @@ namespace DemoApi.Controllers
         {
             try
             {
-                var loans = await _unitOfWork.Loan.GetAll();
+                var loans = await _unitOfWork.Loan.GetAll(IncludeWord: "ApplicationUser,MoneySafe,Emp");
                 var loansToReturn = _mapper.Map<IEnumerable<LoanDisplayDto>>(loans);
                 return Ok(loansToReturn);
             }
@@ -118,6 +119,7 @@ namespace DemoApi.Controllers
             try
             {
                 var loan = _mapper.Map<Loan>(loanToAdd);
+                loan.ApplicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 _unitOfWork.Loan.Add(loan);
                 await _unitOfWork.Complete();
                 return CreatedAtAction(nameof(AddLoan), loan);

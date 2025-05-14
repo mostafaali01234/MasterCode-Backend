@@ -12,6 +12,7 @@ namespace Entities.DTO
         public double Amount { get; set; } = 0;
         public DateTime Date { get; set; } = DateTime.Now;
         public string Notes { get; set; } = string.Empty;
+        public string EmpId { get; set; }
         public int MoneySafeId { get; set; }
     }
     public class LoanDisplayDto
@@ -20,6 +21,7 @@ namespace Entities.DTO
         public double Amount { get; set; }
         public DateTime Date { get; set; }
         public string Notes { get; set; }
+        public string Emp { get; set; }
         public string MoneySafe { get; set; }
         public string ApplicationUser { get; set; }
     }
@@ -29,6 +31,7 @@ namespace Entities.DTO
         public double Amount { get; set; } = 0;
         public DateTime Date { get; set; } = DateTime.Now;
         public string Notes { get; set; } = string.Empty;
+        public string EmpId { get; set; }
         public int MoneySafeId { get; set; }
     }
 }
