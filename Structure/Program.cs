@@ -58,6 +58,7 @@ namespace Strcture
 
             //Custom Service
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
             builder.Services.AddDbContext<ApplicationDbContext>(options => {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));

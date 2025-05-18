@@ -35,6 +35,7 @@ namespace DemoApi.Controllers
                     return NotFound("MoneySafe not found");
                 }
                 var moneySafeToReturn = _mapper.Map<MoneySafeDisplayDto>(moneySafe);
+                moneySafeToReturn.CurrentBalance = _unitOfWork.MoneySafe.GetCurrentBalance(id);
                 return Ok(moneySafeToReturn);
             }
             catch (Exception ex)
@@ -96,6 +97,8 @@ namespace DemoApi.Controllers
             {
                 var moneysafes = await _unitOfWork.MoneySafe.GetAll(IncludeWord: "ApplicationUser");
                 var moneysafesToReturn = _mapper.Map<IEnumerable<MoneySafeDisplayDto>>(moneysafes);
+                foreach (var ms in moneysafesToReturn)
+                    ms.CurrentBalance = _unitOfWork.MoneySafe.GetCurrentBalance(ms.Id);
                 return Ok(moneysafesToReturn);
             }
             catch (Exception ex)

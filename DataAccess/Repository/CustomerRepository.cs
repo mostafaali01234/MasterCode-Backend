@@ -46,7 +46,7 @@ namespace DataAccess.Repository
 
             moves.AddRange(customerPays);
             moves.AddRange(customerOrders);
-            moves = moves.OrderBy(z => z.opDate).ToList();
+            moves = moves.OrderBy(z => z.opDate).ThenBy(z => z.opType).ToList();
 
             double sum = 0;
             foreach (var m in moves)
@@ -54,7 +54,21 @@ namespace DataAccess.Repository
                 sum += (m.opType == "اوردر" ? m.opTotal ?? 0 : (m.opTotal ?? 0) * -1);
                 m.balance = sum;
             }
-            return moves;
+            var prevItem = moves.Where(z => z.opDate < fromDate)/*.OrderByDescending(z => z.opDate)*/.LastOrDefault();
+            var retList = new List<CustomerMovesDisplayDto>();
+            retList.Add(new CustomerMovesDisplayDto
+            {
+                opId = 0,
+                opDate = null,
+                opType = "رصيد سابق",
+                opNotes = "",
+                opTotal = prevItem == null ? 0 : prevItem.balance,
+                balance = prevItem == null ? 0 : prevItem.balance
+            });
+
+            retList.AddRange(moves.Where(z => z.opDate >= fromDate).ToList());
+
+            return retList;
         }
 
         public void Update(Customer customer)

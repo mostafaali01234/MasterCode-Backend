@@ -20,6 +20,7 @@ namespace Entities.DTO
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public double OpeningBalance { get; set; } = 0;
+        public double CurrentBalance { get; set; } = 0;
         public string ApplicationUser { get; set; } = string.Empty;
     }
     public class MoneySafeMovesDisplayDto

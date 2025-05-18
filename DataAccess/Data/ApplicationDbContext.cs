@@ -26,6 +26,7 @@ namespace DataAccess.Data
         public DbSet<ExpenseType> ExpenseTypes { get; set; }
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Loan> Loan { get; set; }
+        public DbSet<RefreshToken> RefreshToken { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,13 +1,17 @@
 ﻿using AutoMapper;
 using Entities.DTO;
+using Entities.IRepository;
 using Entities.Models;
 
 namespace Structure.Profiles
 {
     public class MyProfile : Profile
     {
-        public MyProfile()
+        private readonly IUnitOfWork _unitOfWork;
+        public MyProfile(/*IUnitOfWork unitOfWork*/)
         {
+            //_unitOfWork = unitOfWork;
+
             //Create
             CreateMap<Product, ProductCreateDto>().ReverseMap();
             CreateMap<Category, CategoryCreateDto>().ReverseMap();
@@ -33,9 +37,14 @@ namespace Structure.Profiles
             CreateMap<MoneySafe, MoneySafeUpdateDto>().ReverseMap();
 
             //Display
-            CreateMap<Product, ProductDisplayDto>().ForMember(pts => pts.CategoryName, opt => opt.MapFrom(ps => ps.Category.Name)).ReverseMap();
-            CreateMap<Category, CategoryDisplayDto>().ReverseMap();
-            CreateMap<Customer, CustomerDisplayDto>().ForMember(pts => pts.AddedUserName, opt => opt.MapFrom(ps => ps.ApplicationUser.UserName)).ReverseMap();
+            CreateMap<Product, ProductDisplayDto>()
+                .ForMember(pts => pts.CategoryName, opt => opt.MapFrom(ps => ps.Category.Name))
+                .ReverseMap();
+            CreateMap<Category, CategoryDisplayDto>()
+                .ReverseMap();
+            CreateMap<Customer, CustomerDisplayDto>()
+                .ForMember(pts => pts.AddedUserName, opt => opt.MapFrom(ps => ps.ApplicationUser.UserName))
+                .ReverseMap();
             CreateMap<CustomerPayment, CustomerPaymentDisplayDto>()
                 .ForMember(pts => pts.MoneySafeName, opt => opt.MapFrom(ps => ps.MoneySafe.Name))
                 .ForMember(pts => pts.AddedUserName, opt => opt.MapFrom(ps => ps.ApplicationUser.UserName))
@@ -49,9 +58,16 @@ namespace Structure.Profiles
                 .ForMember(pts => pts.TechName, opt => opt.MapFrom(ps => ps.Tech.Name))
                 .ForMember(pts => pts.ApplicationUserName, opt => opt.MapFrom(ps => ps.ApplicationUser.Name))
                 .ReverseMap();
-            CreateMap<OrderDetail, OrderDetailDisplayDto>().ForMember(pts => pts.ProductName, opt => opt.MapFrom(ps => ps.Product.Title)).ReverseMap();
-            CreateMap<ShoppingCart, ShoppingCartDisplayDto>().ForMember(pts => pts.ProductName, opt => opt.MapFrom(ps => ps.Product.Title)).ReverseMap();
-            CreateMap<MoneySafe, MoneySafeDisplayDto>().ForMember(pts => pts.ApplicationUser, opt => opt.MapFrom(ps => ps.ApplicationUser.Name)).ReverseMap();
+            CreateMap<OrderDetail, OrderDetailDisplayDto>()
+                .ForMember(pts => pts.ProductName, opt => opt.MapFrom(ps => ps.Product.Title))
+                .ReverseMap();
+            CreateMap<ShoppingCart, ShoppingCartDisplayDto>()
+                .ForMember(pts => pts.ProductName, opt => opt.MapFrom(ps => ps.Product.Title))
+                .ReverseMap();
+            CreateMap<MoneySafe, MoneySafeDisplayDto>()
+                .ForMember(pts => pts.ApplicationUser, opt => opt.MapFrom(ps => ps.ApplicationUser.Name))
+                //.ForMember(pts => pts.CurrentBalance, opt => opt.MapFrom(ps => _unitOfWork.MoneySafe.GetCurrentBalance(ps.Id)))
+                .ReverseMap();
             CreateMap<Loan, LoanDisplayDto>()
                 .ForMember(pts => pts.MoneySafe, opt => opt.MapFrom(ps => ps.MoneySafe.Name))
                 .ForMember(pts => pts.ApplicationUser, opt => opt.MapFrom(ps => ps.ApplicationUser.Name))

@@ -20,6 +20,7 @@ namespace DataAccess.Repository
         public IExpenseTypeRepository ExpenseType { get; private set; }
         public ILoanRepository Loan { get; private set; }
         public IMoneySafeRepository MoneySafe { get; private set; }
+        public IRefreshTokenRepository RefreshToken { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -36,6 +37,7 @@ namespace DataAccess.Repository
             ExpenseType = new ExpenseTypeRepository(context);
             Loan = new LoanRepository(context);
             MoneySafe = new MoneySafeRepository(context);
+            RefreshToken = new RefreshTokenRepository(context);
         }
 
         public async Task<int> Complete()

@@ -13,6 +13,9 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Utilities;
+using System.Security.Cryptography;
+using Azure;
+using Structure;
 
 namespace DemoApi.Controllers
 {
@@ -21,16 +24,18 @@ namespace DemoApi.Controllers
     public class AccountController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> userManager;
-        private readonly IConfiguration config;
+        private readonly ITokenRepository _tokenService;
         private IPasswordHasher<ApplicationUser> passwordHasher;
         private readonly IMapper _mapper;
-        public AccountController(UserManager<ApplicationUser> userManager,IConfiguration config, IMapper mapper, IPasswordHasher<ApplicationUser> passwordHash)
+        public AccountController(UserManager<ApplicationUser> userManager, ITokenRepository TokenService, IMapper mapper, IPasswordHasher<ApplicationUser> passwordHash)
         {
             this.userManager = userManager;
-            this.config = config;
             passwordHasher = passwordHash;
             _mapper = mapper;
+            _tokenService = TokenService;
         }
+        
+        
         [HttpPost("register")]
         public async Task<IActionResult> Registration(RegisterUserDto UserDto)
         {
@@ -71,44 +76,13 @@ namespace DemoApi.Controllers
                     bool found = await userManager.CheckPasswordAsync(user, UserDto.Password);
                     if (found)
                     {
-                        //var claims = new List<Claim>();
-                        ////Claims
-                        // claims.Add(new Claim(ClaimTypes.Name, user.UserName));
-                        // claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
-                        // claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-                        ////get role
-                        //var roles = await userManager.GetRolesAsync(user);
-                        //foreach (var Roleitem in roles)
-                        //{
-                        //    claims.Add(new Claim(ClaimTypes.Role, Roleitem));
-                        //}
-                        var userRoles = await userManager.GetRolesAsync(user);
-                        var claims = new List<Claim>
-
+                        var token = await _tokenService.GenAccessToken(user);
+                        var refreshToken = await _tokenService.CreateRefreshToken(user);
+                        return Ok(new ResponseDto
                         {
-                             new Claim(ClaimTypes.Name, user.UserName),
-                             new Claim(ClaimTypes.NameIdentifier, user.Id),
-                             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                             //new Claim(ClaimTypes.Role, userRoles.FirstOrDefault()),
-                        };
-                        foreach (var role in userRoles)
-                        {
-                            claims.Add(new Claim(ClaimTypes.Role, role));
-                        }
-
-                        SecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"]));
-                        SigningCredentials signingCred = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-                        //Token
-                        JwtSecurityToken myToken = new JwtSecurityToken(
-                            issuer: config["JWT:ValidIssuer"],
-                            audience: config["JWT:ValidVudience"],
-                            claims: claims,
-                            expires: DateTime.Now.AddHours(2),
-                            signingCredentials: signingCred
-                            );
-                        return Ok(new
-                        {
-                            token = new JwtSecurityTokenHandler().WriteToken(myToken)
+                            token = token,
+                            refreshToken = refreshToken.Token,
+                            refreshTokenExpiration = UserDto.RememberMe ? refreshToken.Expiry : DateTime.UtcNow.AddDays(1),
                         });
                     }
                 }
@@ -116,7 +90,31 @@ namespace DemoApi.Controllers
             return Unauthorized();
         }
 
-       
+        [HttpPost("refresh-token")]
+        [Authorize]
+        public async Task<IActionResult> RefreshToken([FromBody] string RefreshToken)
+        {
+            if (RefreshToken is null)
+                return BadRequest("Request body is null");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var refreshToken = await _tokenService.GetRefreshToken(RefreshToken);
+            if (refreshToken is null)
+                return Unauthorized("Invalid or expired refresh token");
+
+            var response = new ResponseDto()
+            {
+                token = refreshToken.token,
+                refreshToken = refreshToken.refreshToken,
+                refreshTokenExpiration = refreshToken.refreshTokenExpiration,
+            };
+
+            return Ok(response);
+        }
+
+
         [HttpPost("EditUser")]
         [Authorize]
         public async Task<IActionResult> EditUser(EditUserDto UserDto)
@@ -178,5 +176,100 @@ namespace DemoApi.Controllers
         }
 
 
+        #region RefreshTokenMethods
+        //private string GenerateRefreshToken()
+        //{
+        //    var randomNumber = new byte[32];
+        //    using (var rng = RandomNumberGenerator.Create())
+        //    {
+        //        rng.GetBytes(randomNumber);
+        //        return Convert.ToBase64String(randomNumber);
+        //    }
+        //}
+
+        //public async Task<(string Token, DateTime Expiry)> CreateRefreshToken(ApplicationUser user)
+        //{
+        //    if(user == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(user));
+        //    }
+
+        //    var token = GenerateRefreshToken();
+
+        //    var refreshToken = new RefreshToken()
+        //    {
+        //        Token = token,
+        //        UserId = user.Id,
+        //        Expires = DateTime.UtcNow.AddDays(7),
+        //        User = user
+        //    };
+        //    try
+        //    {
+        //        _unitOfWork.RefreshToken.Add(refreshToken);
+        //        await _unitOfWork.Complete();
+
+        //        return(token, refreshToken.Expires);
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        throw new Exception("Error creating refresh token", ex);
+        //    }
+        //}
+        
+        //public async Task<ResponseDto?> GetRefreshToken(string request)
+        //{
+        //   if(string.IsNullOrEmpty(request)) throw new ArgumentNullException(nameof(request));
+        //   RefreshToken? refreshToken = await _unitOfWork.RefreshToken
+        //        .GetFirstorDefault(c => c.Token == request, IncludeWord:"User");
+
+        //    if (refreshToken?.Expires < DateTime.UtcNow || refreshToken == null)
+        //    {
+        //        throw new ApplicationException("refresh token expired");
+        //    }
+
+        //    string accessToken = await GenerateAccessToken(refreshToken.User);
+        //    refreshToken.Token = GenerateRefreshToken();
+        //    refreshToken.Expires = DateTime.UtcNow.AddDays(7);
+        //    await _unitOfWork.Complete();
+
+        //    return new ResponseDto()
+        //    {
+        //        token = accessToken,
+        //        refreshToken = refreshToken.Token,
+        //        refreshTokenExpiration = refreshToken.Expires,
+        //    };
+
+        //}
+
+        //public async Task<string> GenerateAccessToken(ApplicationUser user)
+        //{
+        //    var userRoles = await userManager.GetRolesAsync(user);
+        //    var claims = new List<Claim>
+
+        //                {
+        //                     new Claim(ClaimTypes.Name, user.UserName),
+        //                     new Claim(ClaimTypes.NameIdentifier, user.Id),
+        //                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        //                     //new Claim(ClaimTypes.Role, userRoles.FirstOrDefault()),
+        //                };
+        //    foreach (var role in userRoles)
+        //    {
+        //        claims.Add(new Claim(ClaimTypes.Role, role));
+        //    }
+
+        //    SecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"]));
+        //    SigningCredentials signingCred = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        //    //Token
+        //    JwtSecurityToken myToken = new JwtSecurityToken(
+        //        issuer: config["JWT:ValidIssuer"],
+        //        audience: config["JWT:ValidVudience"],
+        //        claims: claims,
+        //        expires: DateTime.Now.AddHours(2),
+        //        signingCredentials: signingCred
+        //    );
+
+        //    return new JwtSecurityTokenHandler().WriteToken(myToken);
+        //}
+        #endregion
     }
 }

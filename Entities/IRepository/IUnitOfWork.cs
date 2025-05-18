@@ -14,7 +14,8 @@
         IShoppingCartRepository ShoppingCart { get; }
         IApplicationUserRepository ApplicationUser { get; }
         ISettingRepository Setting { get; }
-        IMoneySafeRepository MoneySafe { get; } 
+        IMoneySafeRepository MoneySafe { get; }
+        IRefreshTokenRepository RefreshToken { get; } 
         Task<int> Complete();
     }
 }
