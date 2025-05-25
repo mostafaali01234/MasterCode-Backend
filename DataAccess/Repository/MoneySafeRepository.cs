@@ -108,7 +108,21 @@ namespace DataAccess.Repository
                 sum += (m.opId == 0 || m.opType == "دفعات عملاء" ? m.opTotal ?? 0 : (m.opTotal ?? 0) * -1);
                 m.balance = sum;
             }
-            return moves;
+
+            var prevItem = moves.Where(z => z.opDate < fromDate)/*.OrderByDescending(z => z.opDate)*/.LastOrDefault();
+            var retList = new List<MoneySafeMovesDisplayDto>();
+            retList.Add(new MoneySafeMovesDisplayDto
+            {
+                opId = 0,
+                opDate = null,
+                opType = "رصيد سابق",
+                opNotes = "",
+                opTotal = prevItem == null ? 0 : prevItem.balance,
+                balance = prevItem == null ? 0 : prevItem.balance
+            });
+
+            retList.AddRange(moves.Where(z => z.opDate >= fromDate).ToList());
+            return retList;
         }
 
     }

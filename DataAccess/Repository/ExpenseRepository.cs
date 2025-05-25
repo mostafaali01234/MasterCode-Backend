@@ -1,6 +1,8 @@
 ﻿using DataAccess.Data;
 using Entities.Models;
 using Entities.IRepository;
+using Entities.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataAccess.Repository
 {
@@ -10,6 +12,23 @@ namespace DataAccess.Repository
         public ExpenseRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
+        }
+
+        public async Task<List<Expense>> GetAllExpenses(DateTime? fromDate, DateTime? toDate, string selectedEmpId, int selectedExpenseTypeId)
+        {
+            var list = new List<Expense>();
+            list = await _context.Expenses
+                .Where(z => z.Date.Value.Date >= fromDate.Value.Date 
+                            && z.Date.Value.Date <= toDate.Value.Date
+                            && (selectedEmpId == "0" || z.EmpId == selectedEmpId)
+                            && (selectedExpenseTypeId == 0 || z.ExpenseTypeId == selectedExpenseTypeId)
+                            )
+                .Include(z => z.ExpenseType)
+                .Include(z => z.Emp)
+                .Include(z => z.ApplicationUser)
+                .Include(z => z.MoneySafe)
+                .ToListAsync();
+            return list;
         }
 
         public void Update(Expense expense)

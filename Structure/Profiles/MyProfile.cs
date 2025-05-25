@@ -66,6 +66,7 @@ namespace Structure.Profiles
                 .ReverseMap();
             CreateMap<MoneySafe, MoneySafeDisplayDto>()
                 .ForMember(pts => pts.ApplicationUser, opt => opt.MapFrom(ps => ps.ApplicationUser.Name))
+                .ForMember(pts => pts.ApplicationUserId, opt => opt.MapFrom(ps => ps.ApplicationUserId))
                 //.ForMember(pts => pts.CurrentBalance, opt => opt.MapFrom(ps => _unitOfWork.MoneySafe.GetCurrentBalance(ps.Id)))
                 .ReverseMap();
             CreateMap<Loan, LoanDisplayDto>()

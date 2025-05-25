@@ -47,11 +47,11 @@ namespace DemoApi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(DateTime? fromDate, DateTime? toDate, string selectedEmpId, int selectedExpenseTypeId)
         {
             try
             {
-                var expenses = await _unitOfWork.Expense.GetAll(IncludeWord: "ExpenseType,Emp,ApplicationUser,MoneySafe");
+                var expenses = await _unitOfWork.Expense.GetAllExpenses(fromDate, toDate, selectedEmpId, selectedExpenseTypeId);
                 var expensesToReturn = _mapper.Map<IEnumerable<ExpenseDisplayDto>>(expenses);
                 return Ok(expensesToReturn);
             }

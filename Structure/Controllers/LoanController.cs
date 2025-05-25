@@ -47,11 +47,12 @@ namespace DemoApi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(DateTime? fromDate, DateTime? toDate, string selectedEmpId)
         {
             try
             {
-                var loans = await _unitOfWork.Loan.GetAll(IncludeWord: "ApplicationUser,MoneySafe,Emp");
+                //var loans = await _unitOfWork.Loan.GetAll(IncludeWord: "ApplicationUser,MoneySafe,Emp");
+                var loans = await _unitOfWork.Loan.GetAllLoans(fromDate, toDate, selectedEmpId);
                 var loansToReturn = _mapper.Map<IEnumerable<LoanDisplayDto>>(loans);
                 return Ok(loansToReturn);
             }

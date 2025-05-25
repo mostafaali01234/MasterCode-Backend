@@ -19,12 +19,17 @@ namespace Entities.DTO
     public class ExpenseDisplayDto
     {
         public int Id { get; set; }
+        public double Amount { get; set; }
         public string ExpenseType { get; set; } = string.Empty;
+        public int ExpenseTypeId { get; set; } 
         public DateTime Date { get; set; } = DateTime.Now;
         public string Notes { get; set; } = string.Empty;
         public string Emp { get; set; } = string.Empty;
+        public string EmpId { get; set; } = string.Empty;
         public string MoneySafe { get; set; } = string.Empty;
+        public int MoneySafeId { get; set; }
         public string ApplicationUser { get; set; } = string.Empty;
+        public string ApplicationUserId { get; set; } = string.Empty;
     }
     public class ExpenseUpdateDto
     {

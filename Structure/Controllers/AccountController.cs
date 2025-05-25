@@ -115,26 +115,54 @@ namespace DemoApi.Controllers
         }
 
 
-        [HttpPost("EditUser")]
-        [Authorize]
-        public async Task<IActionResult> EditUser(EditUserDto UserDto)
+        [HttpPost("EditUserData")]
+        //[Authorize]
+        public async Task<IActionResult> EditUserData(EditUserDto UserDto)
         {
             if (ModelState.IsValid)
             {
                 ApplicationUser user = await userManager.FindByIdAsync(UserDto.Id);
                 if (user != null)
                 {
+                    user.Name = UserDto.Name;
                     user.UserName = UserDto.UserName;
                     user.Email = UserDto.Email;
                     user.PhoneNumber = UserDto.Phone;
                     user.JobId = UserDto.JobId;
                     //user.PasswordHash = passwordHasher.HashPassword(user, UserDto.Password);
-                    await userManager.RemovePasswordAsync(user);
-                    await userManager.AddPasswordAsync(user, UserDto.Password);
+
+
+                    //await userManager.RemovePasswordAsync(user);
+                    //await userManager.AddPasswordAsync(user, UserDto.Password);
+                    //await userManager.ChangePasswordAsync(user, UserDto.Oldpassword, UserDto.Password);
 
                     IdentityResult result = await userManager.UpdateAsync(user);
                     if (result.Succeeded)
-                        return Ok("User Updated Successfully");
+                        return Ok(user);
+                    else
+                        return BadRequest(result.Errors.FirstOrDefault());
+                }
+            }
+            return BadRequest(ModelState);
+        }
+        
+        [HttpPost("EditUserPassword")]
+        //[Authorize]
+        public async Task<IActionResult> EditUserPassword(EditUserPasswordDto UserDto)
+        {
+            if (ModelState.IsValid)
+            {
+                ApplicationUser user = await userManager.FindByIdAsync(UserDto.Id);
+                if (user != null)
+                {
+                    //await userManager.RemovePasswordAsync(user);
+                    //await userManager.AddPasswordAsync(user, UserDto.Password);
+
+                    //await userManager.ChangePasswordAsync(user, UserDto.Oldpassword, UserDto.Password);
+                    var result = await userManager.ChangePasswordAsync(user, UserDto.Oldpassword, UserDto.Password);
+                    //IdentityResult result = await userManager.UpdateAsync(user);
+                    if (result.Succeeded)
+                        return Ok(user);
                     else
                         return BadRequest(result.Errors.FirstOrDefault());
                 }

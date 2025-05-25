@@ -22,8 +22,11 @@ namespace Entities.DTO
         public DateTime Date { get; set; }
         public string Notes { get; set; }
         public string Emp { get; set; }
+        public string EmpId { get; set; }
         public string MoneySafe { get; set; }
+        public int MoneySafeId { get; set; }
         public string ApplicationUser { get; set; }
+        public string ApplicationUserId { get; set; }
     }
     public class LoanUpdateDto
     {

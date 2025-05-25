@@ -48,6 +48,7 @@ namespace DataAccess.Repository
                 issuer: config["JWT:ValidIssuer"],
                 audience: config["JWT:ValidVudience"],
                 claims: claims,
+                //expires: DateTime.Now.AddSeconds(30),
                 expires: DateTime.Now.AddHours(2),
                 signingCredentials: signingCred
             );
