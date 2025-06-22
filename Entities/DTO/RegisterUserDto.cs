@@ -30,6 +30,7 @@ namespace Entities.DTO
         //[Compare("Password")]
         //public string ConfirmPassword { get; set; }
         public int JobId { get; set; }
+        public string RoleId { get; set; }
     }public class EditUserPasswordDto
     {
         public string Id { get; set; }
@@ -48,5 +49,7 @@ namespace Entities.DTO
         public string Phone { get; set; }
         public int JobId { get; set; }
         public string JobName { get; set; }
+        public string RoleId { get; set; }
+        public string RoleName { get; set; }
     }
 }

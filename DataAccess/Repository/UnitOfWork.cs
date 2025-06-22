@@ -9,6 +9,7 @@ namespace DataAccess.Repository
         private readonly ApplicationDbContext _context;
         public IOrderHeaderRepository OrderHeader { get; private set; }
         public IOrderDetailRepository OrderDetail { get; private set; }
+        public IJobRepository Job { get; private set; }
         public ICategoryRepository Category { get; private set; }
         public IProductRepository Product { get; private set; }
         public ICustomerRepository Customer { get; private set; }
@@ -27,6 +28,7 @@ namespace DataAccess.Repository
             OrderHeader = new OrderHeaderRepository(context);
             OrderDetail = new OrderDetailRepository(context);
             ShoppingCart = new ShoppingCartRepository(context);
+            Job = new JobRepository(context);
             Category = new CategoryRepository(context);
             Product = new ProductRepository(context);
             Customer = new CustomerRepository(context);

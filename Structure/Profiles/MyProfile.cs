@@ -14,6 +14,7 @@ namespace Structure.Profiles
 
             //Create
             CreateMap<Product, ProductCreateDto>().ReverseMap();
+            CreateMap<Job, JobCreateDto>().ReverseMap();
             CreateMap<Category, CategoryCreateDto>().ReverseMap();
             CreateMap<Customer, CustomerCreateDto>().ReverseMap();
             CreateMap<CustomerPayment, CustomerPaymentCreateDto>().ReverseMap();
@@ -27,6 +28,7 @@ namespace Structure.Profiles
             //Update
             CreateMap<Product, ProductUpdateDto>().ReverseMap();
             CreateMap<Category, CategoryUpdateDto>().ReverseMap();
+            CreateMap<Job, JobUpdateDto>().ReverseMap();
             CreateMap<Customer, CustomerUpdateDto>().ReverseMap();
             CreateMap<CustomerPayment, CustomerPaymentUpdateDto>().ReverseMap();
             CreateMap<ShoppingCart, ShoppingCartUpdateDto>().ReverseMap();
@@ -41,6 +43,8 @@ namespace Structure.Profiles
                 .ForMember(pts => pts.CategoryName, opt => opt.MapFrom(ps => ps.Category.Name))
                 .ReverseMap();
             CreateMap<Category, CategoryDisplayDto>()
+                .ReverseMap(); 
+            CreateMap<Job, JobDisplayDto>()
                 .ReverseMap();
             CreateMap<Customer, CustomerDisplayDto>()
                 .ForMember(pts => pts.AddedUserName, opt => opt.MapFrom(ps => ps.ApplicationUser.UserName))

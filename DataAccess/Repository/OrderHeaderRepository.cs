@@ -26,6 +26,7 @@ namespace DataAccess.Repository
                 orderHeaderInDb.TechId = orderHeader.TechId;
                 orderHeaderInDb.InstallDate = orderHeader.InstallDate;
                 orderHeaderInDb.PaymentStatus = orderHeader.PaymentStatus;
+                orderHeaderInDb.ApplicationUserId = orderHeader.ApplicationUserId;
             }
         }
 

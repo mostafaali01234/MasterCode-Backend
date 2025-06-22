@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Utilities;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace DemoApi.Controllers
 {
@@ -25,22 +26,31 @@ namespace DemoApi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetOrders(string status, DateTime fromDate, DateTime toDate)
+        public async Task<IActionResult> GetOrders(DateTime fromCreateDate, DateTime toCreateDate, string selectedSellerId
+                                                    , string selectedTechId, string? selectedCustomerName, string selectedOrderStatus, string selectedPaymentStatus)
         {
-            if(fromDate == null)
-                fromDate = DateTime.Now;
-             if(toDate == null)
-                fromDate = DateTime.Now;
-             if(status == null)
-                status = "الكل";
+            if(fromCreateDate == null)
+                fromCreateDate = DateTime.Now;
+             if(toCreateDate == null)
+                toCreateDate = DateTime.Now;
+
+             if(selectedOrderStatus == null)
+                selectedOrderStatus = "الكل";
+             if(selectedPaymentStatus == null)
+                selectedPaymentStatus = "الكل";
 
             var user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var isAdmin = User.IsInRole(SD.AdminRole);
 
             var orders = await _unitOfWork.OrderHeader
                 .GetAll(x => 
-                    (isAdmin || x.ApplicationUserId == user) 
-                    && (status == "الكل" || x.OrderStatus == status)
+                    (isAdmin ? (selectedSellerId == "0" || x.ApplicationUserId == selectedSellerId) : x.ApplicationUserId == user) 
+                    && x.OrderDate >= fromCreateDate
+                    && x.OrderDate < toCreateDate.AddDays(1)
+                    && (isAdmin ? (selectedTechId == "0" || x.TechId == selectedTechId) : x.TechId == selectedTechId) 
+                    && (selectedOrderStatus == "الكل" || x.OrderStatus == selectedOrderStatus)
+                    && (selectedPaymentStatus == "الكل" || x.PaymentStatus == selectedPaymentStatus)
+                    && (selectedCustomerName == "" || selectedCustomerName == null || x.Customer.CustomerName.Contains(selectedCustomerName) || x.Customer.CustomerPhoneNumber.Contains(selectedCustomerName) )
                 , IncludeWord: "ApplicationUser,Customer,Tech");
             var ordersToReturn = _mapper.Map<IEnumerable<OrderHeaderDisplayDto>>(orders);
 
@@ -71,7 +81,7 @@ namespace DemoApi.Controllers
         }
 
         [HttpPost("CancelOrder")]
-        public async Task<IActionResult> CancelOrder(int id)
+        public async Task<IActionResult> CancelOrder([FromBody]int id)
         {
             var old = _unitOfWork.OrderHeader.GetFirstorDefault(z => z.Id == id);
             if (old == null)
@@ -115,7 +125,7 @@ namespace DemoApi.Controllers
         }
 
         [HttpPost]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> AddOrder(OrderCreateDto orderToAdd)
         {
             try
@@ -136,13 +146,76 @@ namespace DemoApi.Controllers
                     _unitOfWork.OrderDetail.Add(dets);
                 }
                 await _unitOfWork.Complete();
+                //return RedirectToAction("GetOrderDetails", orderHeader.Id);
 
-                return RedirectToAction("GetOrderDetails", orderHeader.Id);
+
+                var orderToReturn = new OrderDisplayDto
+                {
+                    OrderHeader = _mapper.Map<OrderHeaderDisplayDto>(orderHeader),
+                    OrderDetailsList = _mapper.Map<IEnumerable<OrderDetailDisplayDto>>(orderDets)
+                };
+                return Ok(orderToReturn);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpdateDto orderToUpdate)
+        {
+            try
+            {
+                if (id != orderToUpdate.OrderHeader.Id)
+                {
+                    return BadRequest("Order ID mismatch");
+                }
+                var existingOrder = await _unitOfWork.OrderHeader.GetFirstorDefault(c => c.Id == id);
+                if (existingOrder == null)
+                {
+                    return NotFound("Order not found");
+                }
+                var orderHeader = _mapper.Map<OrderHeader>(orderToUpdate.OrderHeader);
+                var orderDets = _mapper.Map<OrderDetail[]>(orderToUpdate.OrderDetailsList);
+                orderHeader.OrderTotal = orderDets.Sum(z => z.Count * z.Price);
+                _unitOfWork.OrderHeader.Update(orderHeader);
+                var oldDets = await _unitOfWork.OrderDetail.GetAll(z => z.OrderHeaderId == id);
+                _unitOfWork.OrderDetail.RemoveRange(oldDets);
+                foreach(var item in orderDets)
+                {
+                    item.Id = 0;
+                    item.OrderHeaderId = orderHeader.Id;
+                    //if (item.Id != 0)
+                    //    _unitOfWork.OrderDetail.Update(item);
+                    //else
+                        _unitOfWork.OrderDetail.Add(item);
+                }
+                await _unitOfWork.Complete();
+                return Ok(orderToUpdate);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("GetOrderComms")]
+        //[Authorize]
+        public async Task<IActionResult> GetOrderComms(int orderId)
+        {
+            var old = _unitOfWork.OrderHeader.GetFirstorDefault(z => z.Id == orderId);
+            if (old.Result == null)
+                return NotFound(new { message = "الاوردر غير موجود", status = 400 });
+
+            var list = _unitOfWork.Setting.GetOrderComms(orderId);
+            if(list.Count() > 0)
+                return Ok(list);
+            else
+                return NotFound(new { message = "الاوردر غير تام-غير مدفوع", status = 400 });
+        }
+
+        
     }
 }

@@ -2,6 +2,7 @@
 {
     public interface IUnitOfWork : IDisposable
     {
+        IJobRepository Job { get; }
         ICategoryRepository Category { get; }
         IProductRepository Product { get; }
         ICustomerRepository Customer { get; }

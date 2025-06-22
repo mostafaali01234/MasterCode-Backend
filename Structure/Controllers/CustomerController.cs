@@ -46,6 +46,26 @@ namespace DemoApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        
+        [HttpGet("getCustomerNamePhone")]
+        [Authorize]
+        public async Task<IActionResult> GetCustomerNamePhone(string searchText)
+        {
+            try
+            {
+                var customer = await _unitOfWork.Customer.GetFirstorDefault(c => c.CustomerName.Contains(searchText) || c.CustomerPhoneNumber.Contains(searchText), IncludeWord: "ApplicationUser");
+                if (customer == null)
+                {
+                    return NotFound("Customer not found");
+                }
+                var customerToReturn = _mapper.Map<CustomerDisplayDto>(customer);
+                return Ok(customerToReturn);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
 
         [HttpGet]
         [Authorize]

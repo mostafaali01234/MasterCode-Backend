@@ -43,6 +43,26 @@ namespace DemoApi.Controllers
             }
         }
 
+        [HttpGet("getProductByName")]
+        [Authorize]
+        public async Task<IActionResult> GetProductByName(string searchText)
+        {
+            try
+            {
+                var Product = await _unitOfWork.Product.GetFirstorDefault(c => c.Title.Contains(searchText), IncludeWord: "Category");
+                if (Product == null)
+                {
+                    return NotFound("Product not found");
+                }
+                var ProductToReturn = _mapper.Map<ProductDisplayDto>(Product);
+                return Ok(ProductToReturn);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
 
         [HttpGet]
         [Authorize]

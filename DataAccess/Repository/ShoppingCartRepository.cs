@@ -18,6 +18,7 @@ namespace DataAccess.Repository
             if (ShoppingCartInDb != null)
             {
                 ShoppingCartInDb.Price = shoppingCart.Price;
+                ShoppingCartInDb.Count = shoppingCart.Count;
                 ShoppingCartInDb.ProductId = shoppingCart.ProductId;
             }
         }

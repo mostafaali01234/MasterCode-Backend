@@ -14,7 +14,7 @@ namespace Entities.DTO
     public class ShoppingCartCreateDto
     {
         public int Id { get; set; }
-        public string ApplicationUserId { get; set; }
+        public string? ApplicationUserId { get; set; }
         [Required]
         public int ProductId { get; set; }
         public int Count { get; set; } = 1;

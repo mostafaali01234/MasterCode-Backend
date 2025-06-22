@@ -27,12 +27,16 @@ namespace DemoApi.Controllers
         private readonly ITokenRepository _tokenService;
         private IPasswordHasher<ApplicationUser> passwordHasher;
         private readonly IMapper _mapper;
-        public AccountController(UserManager<ApplicationUser> userManager, ITokenRepository TokenService, IMapper mapper, IPasswordHasher<ApplicationUser> passwordHash)
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly RoleManager<IdentityRole> roleManager;
+        public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ITokenRepository TokenService, IUnitOfWork unitOfWork, IMapper mapper, IPasswordHasher<ApplicationUser> passwordHash)
         {
+            this.roleManager = roleManager;
             this.userManager = userManager;
             passwordHasher = passwordHash;
             _mapper = mapper;
             _tokenService = TokenService;
+            _unitOfWork = unitOfWork;
         }
         
         
@@ -91,7 +95,7 @@ namespace DemoApi.Controllers
         }
 
         [HttpPost("refresh-token")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> RefreshToken([FromBody] string RefreshToken)
         {
             if (RefreshToken is null)
@@ -131,6 +135,12 @@ namespace DemoApi.Controllers
                     user.JobId = UserDto.JobId;
                     //user.PasswordHash = passwordHasher.HashPassword(user, UserDto.Password);
 
+
+                    //var roles = await userManager.GetRolesAsync(user);
+                    //await userManager.RemoveFromRolesAsync(user, roles);
+                    await RemoveAllRoles(user.Id);
+                    var role = await roleManager.FindByIdAsync(UserDto.RoleId);
+                    await userManager.AddToRoleAsync(user, role.Name);
 
                     //await userManager.RemovePasswordAsync(user);
                     //await userManager.AddPasswordAsync(user, UserDto.Password);
@@ -195,6 +205,10 @@ namespace DemoApi.Controllers
                     return NotFound("User not found");
                 }
                 var userToReturn = _mapper.Map<DisplayUserDto>(user);
+                var roles = await userManager.GetRolesAsync(user);
+                string roleName = roles.Count == 0 ? "" : roles[0];
+                userToReturn.RoleName = roleName;
+                userToReturn.RoleId = (roles.Count == 0 ? "" : await GetRoleId(roleName));
                 return Ok(userToReturn);
             }
             catch (Exception ex)
@@ -243,7 +257,7 @@ namespace DemoApi.Controllers
         //        throw new Exception("Error creating refresh token", ex);
         //    }
         //}
-        
+
         //public async Task<ResponseDto?> GetRefreshToken(string request)
         //{
         //   if(string.IsNullOrEmpty(request)) throw new ArgumentNullException(nameof(request));
@@ -298,6 +312,88 @@ namespace DemoApi.Controllers
 
         //    return new JwtSecurityTokenHandler().WriteToken(myToken);
         //}
+        #endregion
+
+
+        [HttpGet("GetEmpComms")]
+        public async Task<IActionResult> GetEmpComms(string empId, DateTime fromDate, DateTime toDate)
+        {
+            var list = _unitOfWork.Setting.GetEmpComms(empId, fromDate, toDate);
+            if (list.Count() > 0)
+                return Ok(list);
+            else
+                return NotFound(new { message = "لا يوجد بيانات لعرضها", status = 404 });
+        }
+
+
+
+        #region MyRegion
+        [HttpPost("remove-all-roles/{userId}")]
+        public async Task<IActionResult> RemoveAllRoles(string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound($"User with ID {userId} not found.");
+
+            var roles = await userManager.GetRolesAsync(user);
+            var result = await userManager.RemoveFromRolesAsync(user, roles);
+            return result.Succeeded ? Ok($"All roles removed from user {userId}.") : BadRequest(result.Errors);
+        }
+
+        [HttpPost("CreateRole")]
+        public async Task<IActionResult> CreateRole([FromBody] string roleName)
+        {
+            if (string.IsNullOrWhiteSpace(roleName))
+            {
+                return BadRequest("Role name is required.");
+            }
+
+            var roleExists = await roleManager.RoleExistsAsync(roleName);
+            if (roleExists)
+            {
+                return BadRequest($"Role '{roleName}' already exists.");
+            }
+
+            var role = new IdentityRole(roleName);
+            var result = await roleManager.CreateAsync(role);
+            return result.Succeeded ? Ok($"Role '{roleName}' created successfully.") : BadRequest(result.Errors);
+        }
+        [HttpDelete("DeleteRole")]
+        public async Task<IActionResult> DeleteRole(string roleName)
+        {
+            var role = await roleManager.FindByNameAsync(roleName);
+            if (role == null)
+            {
+                return NotFound($"Role '{roleName}' not found.");
+            }
+
+            var result = await roleManager.DeleteAsync(role);
+            return result.Succeeded ? Ok($"Role '{roleName}' deleted successfully.") : BadRequest(result.Errors);
+        }
+        [HttpGet("GetRoleId")]
+        public async Task<string> GetRoleId(string name)
+        {
+            var role = await roleManager.FindByNameAsync(name);
+            return (role.Id);
+        }
+        [HttpGet("GetAllRoles")]
+        public IActionResult GetAllRoles()
+        {
+            var roles = roleManager.Roles;
+            return Ok(roles);
+        }
+        // GET: api/roles/user/{userId}
+        [HttpGet("GetUserRoles/{userId}")]
+        public async Task<IActionResult> GetUserRoles(string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound($"User with ID {userId} not found.");
+            }
+
+            var roles = await userManager.GetRolesAsync(user);
+            return Ok(roles);
+        }
         #endregion
     }
 }

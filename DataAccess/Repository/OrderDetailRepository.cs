@@ -17,6 +17,7 @@ namespace DataAccess.Repository
             var orderDetailInDb = _context.OrderDetails.FirstOrDefault(x => x.Id == orderDetail.Id);
             if (orderDetailInDb != null)
             {
+                orderDetailInDb.Count = orderDetail.Count;
                 orderDetailInDb.Price = orderDetail.Price;
                 orderDetailInDb.OrderHeaderId = orderDetail.OrderHeaderId;
                 orderDetailInDb.ProductId = orderDetail.ProductId;

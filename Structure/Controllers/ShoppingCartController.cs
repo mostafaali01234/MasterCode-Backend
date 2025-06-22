@@ -103,5 +103,32 @@ namespace DemoApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateShoppingCartItem(int id, [FromBody] ShoppingCartUpdateDto itemToUpdate)
+        {
+            try
+            {
+                if (id != itemToUpdate.Id)
+                {
+                    return BadRequest("ShoppingCart Item ID mismatch");
+                }
+                var existingCustomer = await _unitOfWork.ShoppingCart.GetFirstorDefault(c => c.Id == id);
+                if (existingCustomer == null)
+                {
+                    return NotFound("ShoppingCart Item not found");
+                }
+                var cartItem = _mapper.Map<ShoppingCart>(itemToUpdate);
+                _unitOfWork.ShoppingCart.Update(cartItem);
+                await _unitOfWork.Complete();
+                return Ok(itemToUpdate);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 }
