@@ -179,6 +179,29 @@ namespace DemoApi.Controllers
             }
             return BadRequest(ModelState);
         }
+        
+        [HttpPost("EditUserPasswordAdmin")]
+        //[Authorize]
+        public async Task<IActionResult> EditUserPasswordAdmin(EditUserPasswordDto UserDto)
+        {
+            if (ModelState.IsValid)
+            {
+                ApplicationUser user = await userManager.FindByIdAsync(UserDto.Id);
+                if (user != null)
+                {
+                    await userManager.RemovePasswordAsync(user);
+                    var result = await userManager.AddPasswordAsync(user, UserDto.Password);
+
+                    //var result = await userManager.ChangePasswordAsync(user, UserDto.Oldpassword, UserDto.Password);
+                    //IdentityResult result = await userManager.UpdateAsync(user);
+                    if (result.Succeeded)
+                        return Ok(user);
+                    else
+                        return BadRequest(result.Errors.FirstOrDefault());
+                }
+            }
+            return BadRequest(ModelState);
+        }
 
         
         [HttpGet("GetAllUsers")]
