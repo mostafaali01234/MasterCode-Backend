@@ -76,7 +76,7 @@ namespace DemoApi.Controllers
 
             try
             {
-                var customers = await _unitOfWork.Customer.GetAll(x => (isAdmin || x.ApplicationUserId == user) , IncludeWord: "ApplicationUser");
+                var customers = await _unitOfWork.Customer.GetAll(x => /*(isAdmin || x.ApplicationUserId == user)*/true , IncludeWord: "ApplicationUser");
                 var customersToReturn = _mapper.Map<IEnumerable<CustomerDisplayDto>>(customers);
                 return Ok(customersToReturn);
             }

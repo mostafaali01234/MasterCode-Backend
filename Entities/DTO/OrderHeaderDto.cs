@@ -29,6 +29,7 @@ namespace Entities.DTO
         public int orderId { get; set; }
         public double Paid { get; set; }
         public int MoneySafeId { get; set; }
+        public string TechId { get; set; }
         public DateTime CompleteDate { get; set; }
 
     }

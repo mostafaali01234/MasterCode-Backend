@@ -6,6 +6,6 @@ namespace Entities.IRepository
     {
         void Update(OrderHeader orderHeader);
         void CancelOrder(OrderHeader orderHeader);
-        void CompleteOrder(OrderHeader orderHeader);
+        void CompleteOrder(OrderHeader orderHeader, string Techod);
     }
 }

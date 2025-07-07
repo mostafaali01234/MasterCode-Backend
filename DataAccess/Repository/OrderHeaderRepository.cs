@@ -38,11 +38,12 @@ namespace DataAccess.Repository
                 orderHeaderInDb.OrderStatus = SD.StatusCanceled;
             }
         }
-        public void CompleteOrder(OrderHeader orderHeader)
+        public void CompleteOrder(OrderHeader orderHeader, string TechId)
         {
             var orderHeaderInDb = _context.OrderHeaders.FirstOrDefault(x => x.Id == orderHeader.Id);
             if (orderHeaderInDb != null)
             {
+                orderHeaderInDb.TechId = TechId;
                 orderHeaderInDb.OrderStatus = SD.StatusDone;
                 orderHeaderInDb.InstallDate = orderHeader.InstallDate;
             }

@@ -18,6 +18,7 @@ namespace Entities.DTO
     {
         public int Id { get; set; }
         public int OrderHeaderId { get; set; }
+        public int MoneySafeId { get; set; } 
         public string MoneySafeName { get; set; } 
         public double Amount { get; set; }
         public DateTime Date { get; set; }

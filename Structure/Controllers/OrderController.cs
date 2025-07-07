@@ -26,8 +26,11 @@ namespace DemoApi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetOrders(DateTime fromCreateDate, DateTime toCreateDate, string selectedSellerId
-                                                    , string selectedTechId, string? selectedCustomerName, string selectedOrderStatus, string selectedPaymentStatus)
+        public async Task<IActionResult> GetOrders(DateTime fromCreateDate
+                                                    , DateTime toCreateDate, string selectedSellerId
+                                                    , string selectedTechId, string? selectedCustomerName
+                                                    , string selectedOrderStatus, string selectedPaymentStatus
+                                                    , int? OrderNo = 0)
         {
             if(fromCreateDate == null)
                 fromCreateDate = DateTime.Now;
@@ -45,13 +48,20 @@ namespace DemoApi.Controllers
             var orders = await _unitOfWork.OrderHeader
                 .GetAll(x => 
                     (isAdmin ? (selectedSellerId == "0" || x.ApplicationUserId == selectedSellerId) : x.ApplicationUserId == user) 
-                    && x.OrderDate >= fromCreateDate
+                    && (x.OrderDate >= fromCreateDate
                     && x.OrderDate < toCreateDate.AddDays(1)
-                    && (isAdmin ? (selectedTechId == "0" || x.TechId == selectedTechId) : x.TechId == selectedTechId) 
+                    && (selectedTechId == "0" || x.TechId == selectedTechId)
+                    //&& (isAdmin ? (selectedTechId == "0" || x.TechId == selectedTechId) : x.TechId == selectedTechId) 
                     && (selectedOrderStatus == "الكل" || x.OrderStatus == selectedOrderStatus)
                     && (selectedPaymentStatus == "الكل" || x.PaymentStatus == selectedPaymentStatus)
                     && (selectedCustomerName == "" || selectedCustomerName == null || x.Customer.CustomerName.Contains(selectedCustomerName) || x.Customer.CustomerPhoneNumber.Contains(selectedCustomerName) )
-                , IncludeWord: "ApplicationUser,Customer,Tech");
+                    )
+                    , IncludeWord: "ApplicationUser,Customer,Tech");
+
+            if (OrderNo != 0)
+            {
+                orders = await _unitOfWork.OrderHeader.GetAll(z => z.Id == OrderNo, IncludeWord: "ApplicationUser,Customer,Tech");
+            }
             var ordersToReturn = _mapper.Map<IEnumerable<OrderHeaderDisplayDto>>(orders);
 
             return Ok(ordersToReturn);
@@ -62,13 +72,15 @@ namespace DemoApi.Controllers
         public async Task<IActionResult> GetOrderDetails(int id)
         {
             var orderHeader = await _unitOfWork.OrderHeader.GetFirstorDefault(x => x.Id == id , IncludeWord: "ApplicationUser,Customer,Tech");
+            var orderPayment = await _unitOfWork.CustomerPayment.GetFirstorDefault(x => x.OrderHeaderId == id , IncludeWord: "ApplicationUser,MoneySafe");
             var orderDets = await _unitOfWork.OrderDetail.GetAll(z => z.OrderHeaderId == id, IncludeWord: "Product");
             
 
             var orderToReturn = new OrderDisplayDto
             {
                 OrderHeader = _mapper.Map<OrderHeaderDisplayDto>(orderHeader),
-                OrderDetailsList = _mapper.Map<IEnumerable<OrderDetailDisplayDto>>(orderDets)
+                OrderDetailsList = _mapper.Map<IEnumerable<OrderDetailDisplayDto>>(orderDets),
+                OrderPayment = _mapper.Map<CustomerPaymentDisplayDto>(orderPayment),
             };
 
             return Ok(orderToReturn);
@@ -94,34 +106,6 @@ namespace DemoApi.Controllers
 
 
             return Ok(old.Result);
-        }
-
-        [HttpPost("CompleteOrder")]
-        //public async Task<IActionResult> CompleteOrder(int id, double Paid, int MoneySafeId, DateTime CompleteDate)
-        public async Task<IActionResult> CompleteOrder(OrderCompleteDto completeDets)
-        {
-            var old = _unitOfWork.OrderHeader.GetFirstorDefault(z => z.Id == completeDets.orderId);
-            if (old.Result == null)
-                return BadRequest("Order Not Found!!");
-
-            old.Result.InstallDate = completeDets.CompleteDate;
-
-            var orderToUpdate = _mapper.Map<OrderHeader>(old.Result);
-            _unitOfWork.OrderHeader.CompleteOrder(orderToUpdate);
-
-            if (orderToUpdate.OrderTotal == completeDets.Paid)
-                orderToUpdate.PaymentStatus = SD.PaymentStatusDonw;
-            _unitOfWork.CustomerPayment.Add(new CustomerPayment
-            {
-                Amount = completeDets.Paid,
-                OrderHeaderId = orderToUpdate.Id,
-                Date = completeDets.CompleteDate,
-                MoneySafeId = completeDets.MoneySafeId,
-                ApplicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            });
-            await _unitOfWork.Complete();
-
-            return Ok(orderToUpdate);
         }
 
         [HttpPost]
@@ -200,6 +184,45 @@ namespace DemoApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPost("CompleteOrder")]
+        //public async Task<IActionResult> CompleteOrder(int id, double Paid, int MoneySafeId, DateTime CompleteDate)
+        public async Task<IActionResult> CompleteOrder(OrderCompleteDto completeDets)
+        {
+            var old = _unitOfWork.OrderHeader.GetFirstorDefault(z => z.Id == completeDets.orderId);
+            if (old.Result == null)
+                return BadRequest("Order Not Found!!");
+
+            old.Result.InstallDate = completeDets.CompleteDate;
+
+            var orderToUpdate = _mapper.Map<OrderHeader>(old.Result);
+            if (orderToUpdate.OrderStatus == SD.StatusDone)
+            {
+                var paymentToRemove = await _unitOfWork.CustomerPayment
+                    .GetAll(z => z.OrderHeaderId == orderToUpdate.Id/* && z.Date == completeDets.CompleteDate*/);
+                if (paymentToRemove != null)
+                {
+                    _unitOfWork.CustomerPayment.RemoveRange(paymentToRemove);
+                    await _unitOfWork.Complete();
+                }
+            }
+            _unitOfWork.CustomerPayment.Add(new CustomerPayment
+            {
+                Amount = completeDets.Paid,
+                OrderHeaderId = orderToUpdate.Id,
+                Date = completeDets.CompleteDate,
+                MoneySafeId = completeDets.MoneySafeId,
+                ApplicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            });
+            if (orderToUpdate.OrderTotal == completeDets.Paid)
+                orderToUpdate.PaymentStatus = SD.PaymentStatusDonw;
+            _unitOfWork.OrderHeader.CompleteOrder(orderToUpdate, completeDets.TechId);
+            await _unitOfWork.Complete();
+
+            return Ok(orderToUpdate);
+        }
+        
+      
 
         [HttpGet("GetOrderComms")]
         //[Authorize]

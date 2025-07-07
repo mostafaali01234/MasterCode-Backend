@@ -17,6 +17,7 @@ namespace Entities.DTO
     public class OrderDisplayDto
     {
         public OrderHeaderDisplayDto OrderHeader { get; set; }
+        public CustomerPaymentDisplayDto OrderPayment { get; set; }
         public IEnumerable<OrderDetailDisplayDto> OrderDetailsList { get; set; }
     }
     public class OrderUpdateDto

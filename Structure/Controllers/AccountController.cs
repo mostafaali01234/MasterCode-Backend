@@ -205,11 +205,13 @@ namespace DemoApi.Controllers
 
         
         [HttpGet("GetAllUsers")]
-        [Authorize(Roles = SD.AdminRole)]
+        //[Authorize(Roles = SD.AdminRole)]
         //[Authorize(AuthenticationSchemes = "Bearer", Roles = nameof(SD.AdminRole))]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await userManager.Users.Include(z => z.Job).ToListAsync();
+            var isAdmin = User.IsInRole(SD.AdminRole);
+            var user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var users = await userManager.Users.Where(x => (isAdmin || x.Id == user)).Include(z => z.Job).ToListAsync();
             var usersToReturn = _mapper.Map<IEnumerable<DisplayUserDto>>(users);
             return Ok(usersToReturn);
         }
