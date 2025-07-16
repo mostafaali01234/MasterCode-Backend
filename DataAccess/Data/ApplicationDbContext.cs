@@ -27,6 +27,9 @@ namespace DataAccess.Data
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Loan> Loan { get; set; }
         public DbSet<RefreshToken> RefreshToken { get; set; }
+        public DbSet<ChatRoom> ChatRoom { get; set; }
+        public DbSet<PublicChatMessages> PublicChatMessages { get; set; }
+        public DbSet<PrivateChatMessages> PrivateChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Utilities;
+using Structure.Hubs;
 
 
 namespace Strcture
@@ -55,6 +56,8 @@ namespace Strcture
                 }
                });
             });
+
+            builder.Services.AddSignalR();
 
             //Custom Service
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -137,6 +140,8 @@ namespace Strcture
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapHub<ChatHub>("/hubs/chat");
 
             app.Run();
         }
