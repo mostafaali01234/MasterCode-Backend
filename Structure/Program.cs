@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Utilities;
 using Structure.Hubs;
+using Microsoft.Extensions.Primitives;
 
 
 namespace Strcture
@@ -90,6 +91,24 @@ namespace Strcture
                     ValidAudience = builder.Configuration["JWT:ValidVudience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        if (context.Request.Query.TryGetValue("token", out StringValues token)
+                        )
+                        {
+                            context.Token = token;
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        var te = context.Exception;
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
 
@@ -116,8 +135,11 @@ namespace Strcture
             {
                 options.AddPolicy("MyPolicy", policyBuilder =>
                 {
-                    policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                    policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:4200", "other domains");
                 });
+                options.AddPolicy("CORSPolicy", builder => 
+                    builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((hosts) => true)
+                );
             });
 
             var app = builder.Build();
@@ -129,9 +151,9 @@ namespace Strcture
                 app.UseSwaggerUI();
             }
 
-            app.UseStaticFiles();
+            app.UseCors("CORSPolicy");
 
-            app.UseCors("MyPolicy");
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 

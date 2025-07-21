@@ -84,6 +84,7 @@ namespace DemoApi.Controllers
                         var refreshToken = await _tokenService.CreateRefreshToken(user);
                         return Ok(new ResponseDto
                         {
+                            userId = user.Id,
                             token = token,
                             refreshToken = refreshToken.Token,
                             refreshTokenExpiration = UserDto.RememberMe ? refreshToken.Expiry : DateTime.UtcNow.AddDays(1),
@@ -110,6 +111,7 @@ namespace DemoApi.Controllers
 
             var response = new ResponseDto()
             {
+                userId = refreshToken.userId,
                 token = refreshToken.token,
                 refreshToken = refreshToken.refreshToken,
                 refreshTokenExpiration = refreshToken.refreshTokenExpiration,

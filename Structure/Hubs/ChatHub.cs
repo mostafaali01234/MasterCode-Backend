@@ -1,10 +1,15 @@
 ﻿using DataAccess.Data;
 using Entities.DTO;
+using Entities.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Structure.Hubs
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ChatHub : Hub
     {
         private readonly ApplicationDbContext _db;
@@ -49,39 +54,43 @@ namespace Structure.Hubs
             return base.OnDisconnectedAsync(exception);
         }
 
+        // New -------------------------------------
 
-        public async Task SendAddRoomMessage(int maxRoom, int roomId, string roomName)
+        public async Task SendAddRoom(int maxRoom, string roomName)
         {
+            var userId1 = ClaimsPrincipal.Current?.FindFirstValue(ClaimTypes.NameIdentifier);
             var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
             var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
-
-            await Clients.All.SendAsync("ReceiveAddRoomMessage", maxRoom, roomId, roomName, userId, userName);
-        }
-        public async Task SendDelRoomMessage(int deleted, int selected, string roomName)
-        {
-            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
-
-            await Clients.All.SendAsync("ReceiveDelRoomMessage", deleted, selected, roomName, userName);
-        }
-
-
-        public async Task SendPublicMessage(int roomId, string message, string roomName)
-        {
-            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
-            var newMessage = new Entities.Models.PublicChatMessages
+            var newRoom = new ChatRoom
             {
-                RoomId = roomId,
-                SenderId = userId,
-                Message = message,
-                Time = DateTime.Now
+                Name = roomName,
             };
-            _db.PublicChatMessages.Add(newMessage);
-            _db.SaveChanges();
 
-            await Clients.All.SendAsync("ReceivePublicMessage", roomId, userId, userName, newMessage, roomName);
+            _db.ChatRoom.Add(newRoom);
+            await _db.SaveChangesAsync();
+
+            var roomsList =  await _db.ChatRoom.ToListAsync();
+
+            await Clients.All.SendAsync("ReceiveAddRoomMessage", maxRoom, newRoom.Id, roomName, userId, userName, roomsList);
         }
+        public async Task SendDelRoom(int roomId, string roomName)
+        {
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
+
+            var chatRoom = await _db.ChatRoom.FindAsync(roomId);
+            _db.PublicChatMessages.RemoveRange(_db.PublicChatMessages.Where(z => z.RoomId == roomId).ToList());
+            _db.ChatRoom.Remove(chatRoom);
+            await _db.SaveChangesAsync();
+
+            var roomsList = await _db.ChatRoom.ToListAsync();
+
+            //await Clients.All.SendAsync("ReceiveDelRoomMessage", roomId, roomName, userName);
+
+            await Clients.All.SendAsync("ReceiveAddRoomMessage", 0, roomId, roomName, userId, userName, roomsList);
+        }
+
+
         public async Task populateRoomMessages(int roomId)
         {
             var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -103,8 +112,65 @@ namespace Structure.Hubs
 
             await Clients.All.SendAsync("populateRoomMessages", roomId, userId, messagesList);
         }
+      
+        public async Task SendPublicMessage(int roomId, string message, string roomName)
+        {
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
+            var newMessage = new Entities.Models.PublicChatMessages
+            {
+                RoomId = roomId,
+                SenderId = userId,
+                Message = message,
+                Time = DateTime.Now
+            };
+            _db.PublicChatMessages.Add(newMessage);
+            _db.SaveChanges();
+
+            var messagesList = _db.PublicChatMessages
+               .Where(z => z.RoomId == roomId)
+               .OrderBy(z => z.Time)
+               .Select(z => new PublicMessageVm
+               {
+                   RoomId = (int)z.RoomId,
+                   RoomName = z.ChatRoom.Name,
+                   Message = z.Message,
+                   SenderId = z.SenderId,
+                   SenderName = z.Sender.UserName,
+                   Time = z.Time
+               })
+               .ToList();
+
+            //await Clients.All.SendAsync("ReceivePublicMessage", roomId, userId, userName, newMessage, roomName);
+            await Clients.All.SendAsync("populateRoomMessages", roomId, userId, messagesList);
+        }
 
 
+
+
+        // Old -------------------------------------
+
+        public async Task SendAddRoomMessage(int maxRoom, int roomId, string roomName)
+        {
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
+            var newRoom = new ChatRoom
+            {
+                Name = roomName,
+            };
+
+            _db.ChatRoom.Add(newRoom);
+            await _db.SaveChangesAsync();
+
+            await Clients.All.SendAsync("ReceiveAddRoomMessage", maxRoom, roomId, roomName, userId, userName);
+        }
+        public async Task SendDelRoomMessage(int deleted, int selected, string roomName)
+        {
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
+
+            await Clients.All.SendAsync("ReceiveDelRoomMessage", deleted, selected, roomName, userName);
+        }
 
         public async Task SendPrivateMessage(string receiverId, string message, string receiverName)
         {
