@@ -111,7 +111,8 @@ namespace DemoApi.Controllers
 
             var response = new ResponseDto()
             {
-                userId = refreshToken.userId,
+                userId = (this.User.Claims.First(i => i.Type == "UserId").Value),
+                //userId = refreshToken.userId,
                 token = refreshToken.token,
                 refreshToken = refreshToken.refreshToken,
                 refreshTokenExpiration = refreshToken.refreshTokenExpiration,
@@ -206,6 +207,18 @@ namespace DemoApi.Controllers
         }
 
         
+        [HttpGet("getAllUsersChat")]
+        //[Authorize(Roles = SD.AdminRole)]
+        //[Authorize(AuthenticationSchemes = "Bearer", Roles = nameof(SD.AdminRole))]
+        public async Task<IActionResult> getAllUsersChat()
+        {
+            var isAdmin = User.IsInRole(SD.AdminRole);
+            var user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var users = await userManager.Users.Where(x => x.Id != user).Include(z => z.Job).ToListAsync();
+            var usersToReturn = _mapper.Map<IEnumerable<DisplayUserDto>>(users);
+            return Ok(usersToReturn);
+        }
+
         [HttpGet("GetAllUsers")]
         //[Authorize(Roles = SD.AdminRole)]
         //[Authorize(AuthenticationSchemes = "Bearer", Roles = nameof(SD.AdminRole))]

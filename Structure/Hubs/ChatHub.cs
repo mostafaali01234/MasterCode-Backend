@@ -89,8 +89,6 @@ namespace Structure.Hubs
 
             await Clients.All.SendAsync("ReceiveAddRoomMessage", 0, roomId, roomName, userId, userName, roomsList);
         }
-
-
         public async Task populateRoomMessages(int roomId)
         {
             var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -112,7 +110,6 @@ namespace Structure.Hubs
 
             await Clients.All.SendAsync("populateRoomMessages", roomId, userId, messagesList);
         }
-      
         public async Task SendPublicMessage(int roomId, string message, string roomName)
         {
             var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -147,6 +144,45 @@ namespace Structure.Hubs
 
 
 
+        public async Task populatePrivateChat(string senderId, string receiverId)
+        {
+            var messagesList = _db.PrivateChatMessages
+                 .Where(z => (z.SenderId == senderId && z.ReceiverId == receiverId) || (z.SenderId == receiverId && z.ReceiverId == senderId))
+                 .OrderBy(z => z.Time)
+                 .Select(z => new PrivateMessageVm
+                 {
+                     Message = z.Message,
+                     SenderId = z.SenderId,
+                     SenderName = z.Sender.UserName,
+                     ReceiverId = z.ReceiverId,
+                     ReceiverName = z.Receiver.UserName,
+                     Time = z.Time,
+                     Seen = z.Seen
+                 })
+                 .ToList();
+
+            await Clients.All.SendAsync("populatePrivateChat", senderId, receiverId, messagesList);
+        }
+
+        public async Task SendPrivateMessage(string receiverId, string message, string receiverName)
+        {
+            var senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var senderName = _db.Users.FirstOrDefault(u => u.Id == senderId).UserName;
+
+            var newMessage = new Entities.Models.PrivateChatMessages
+            {
+                SenderId = senderId,
+                ReceiverId = receiverId,
+                Message = message,
+                Seen = false,
+                Time = DateTime.Now
+            };
+            _db.PrivateChatMessages.Add(newMessage);
+            _db.SaveChanges();
+
+
+            await populatePrivateChat(senderId, receiverId);
+        }
 
         // Old -------------------------------------
 
@@ -170,45 +206,6 @@ namespace Structure.Hubs
             var userName = _db.Users.FirstOrDefault(u => u.Id == userId).UserName;
 
             await Clients.All.SendAsync("ReceiveDelRoomMessage", deleted, selected, roomName, userName);
-        }
-
-        public async Task SendPrivateMessage(string receiverId, string message, string receiverName)
-        {
-            var senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            var senderName = _db.Users.FirstOrDefault(u => u.Id == senderId).UserName;
-
-            var newMessage = new Entities.Models.PrivateChatMessages
-            {
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                Message = message,
-                Seen = false,
-                Time = DateTime.Now
-            };
-            _db.PrivateChatMessages.Add(newMessage);
-            _db.SaveChanges();
-
-
-            await populatePrivateChat(senderId, receiverId);
-        }
-        public async Task populatePrivateChat(string senderId, string receiverId)
-        {
-            var messagesList = _db.PrivateChatMessages
-                 .Where(z => (z.SenderId == senderId && z.ReceiverId == receiverId) || (z.SenderId == receiverId && z.ReceiverId == senderId))
-                 .OrderBy(z => z.Time)
-                 .Select(z => new PrivateMessageVm
-                 {
-                     Message = z.Message,
-                     SenderId = z.SenderId,
-                     SenderName = z.Sender.UserName,
-                     ReceiverId = z.ReceiverId,
-                     ReceiverName = z.Receiver.UserName,
-                     Time = z.Time,
-                     Seen = z.Seen
-                 })
-                 .ToList();
-
-            await Clients.All.SendAsync("populatePrivateChat", senderId, receiverId, messagesList);
         }
 
         public async Task SendOpenPrivateChat(string receiverId)
