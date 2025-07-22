@@ -144,11 +144,52 @@ namespace Structure.Hubs
 
 
 
+        public async Task CheckUnseenPrivateMessages()
+        {
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var List = _db.PrivateChatMessages
+                 .Where(z => !z.Seen)
+                 .Include(z => z.Sender)
+                 .Include(z => z.Receiver)
+                 //.Where(z => (z.ReceiverId == userId) && !z.Seen)
+                 .OrderBy(z => z.Time)
+                 .ToList();
+
+            var messagesList = List
+                 .Select(z => new PrivateMessageVm
+                 {
+                     Message = z.Message,
+                     SenderId = z.SenderId,
+                     SenderName = z.Sender.UserName,
+                     ReceiverId = z.ReceiverId,
+                     ReceiverName = z.Receiver.UserName,
+                     Time = z.Time,
+                     Seen = z.Seen
+                 })
+                 .ToList();
+
+            await Clients.Users(List.Select(z => z.ReceiverId)).SendAsync("receiveUnseenPrivateMessages", userId, messagesList);
+        }
+
+
         public async Task populatePrivateChat(string senderId, string receiverId)
         {
-            var messagesList = _db.PrivateChatMessages
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var list = _db.PrivateChatMessages
                  .Where(z => (z.SenderId == senderId && z.ReceiverId == receiverId) || (z.SenderId == receiverId && z.ReceiverId == senderId))
+                 .Include(z => z.Sender)
+                 .Include(z => z.Receiver)
                  .OrderBy(z => z.Time)
+                 .ToList();
+
+                foreach (var item in list.Where(z => z.ReceiverId == userId))
+                {
+                    item.Seen = true;
+                }
+                _db.SaveChanges(); 
+
+            var messagesList = list
                  .Select(z => new PrivateMessageVm
                  {
                      Message = z.Message,
@@ -162,8 +203,11 @@ namespace Structure.Hubs
                  .ToList();
 
             await Clients.All.SendAsync("populatePrivateChat", senderId, receiverId, messagesList);
+            CheckUnseenPrivateMessages();
         }
 
+    
+        
         public async Task SendPrivateMessage(string receiverId, string message, string receiverName)
         {
             var senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -182,6 +226,7 @@ namespace Structure.Hubs
 
 
             await populatePrivateChat(senderId, receiverId);
+            CheckUnseenPrivateMessages();
         }
 
         // Old -------------------------------------
